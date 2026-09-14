@@ -1,0 +1,116 @@
+/* Estilos generales */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f4f8f3;
+    color: #333;
+}
+
+
+/* Encabezado */
+header {
+    background-color: #2e7d32;
+    color: white;
+    text-align: center;
+    padding: 30px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 40px;
+}
+
+header p {
+    font-size: 18px;
+}
+
+
+/* Menú */
+nav {
+    background-color: #1b5e20;
+    text-align: center;
+    padding: 15px;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    margin: 0 15px;
+    font-weight: bold;
+}
+
+nav a:hover {
+    text-decoration: underline;
+}
+
+
+/* Secciones */
+section {
+    padding: 40px;
+    text-align: center;
+}
+
+section h2 {
+    color: #2e7d32;
+}
+
+
+/* Productos */
+#productos {
+    background-color: white;
+}
+
+#productos div {
+    display: inline-block;
+    width: 220px;
+    margin: 15px;
+    padding: 20px;
+    background-color: #f1f8e9;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    vertical-align: top;
+}
+
+#productos h3 {
+    color: #388e3c;
+}
+
+
+/* Botones */
+button {
+    background-color: #43a047;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #2e7d32;
+}
+
+
+/* Contacto */
+input,
+textarea {
+    display: block;
+    width: 300px;
+    margin: 10px auto;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+textarea {
+    height: 100px;
+}
+
+
+/* Pie de página */
+footer {
+    background-color: #1b5e20;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito - EcoVida</title>
+
+    <link rel="stylesheet" href="css/estilos.css">
+
+</head>
+
+<body>
+
+    <header>
+        <h1>🌱 EcoVida</h1>
+        <p>Mi carrito</p>
+    </header>
+
+
+    <nav>
+        <a href="index.html">Inicio</a>
+        <a href="carrito.html">🛒 Carrito</a>
+    </nav>
+
+    <main>
+        <h2>🛒 Productos en mi carrito</h2>
+        <div id="listaCarrito">
+            <p>El carrito está vacío.</p>
+        </div id="listaCarrito">
+        </div>
+
+        <h3>
+            Total: S/ <span id="total">0.00</span>
+        </h3>
+
+        <button onclick="vaciarCarrito()">
+            Vaciar carrito
+        </button>
+
+    </main>
+
+    <script src="JS/ecovida.js"></script>
+    <script>
+        mostrarCarrito();
+    </script>
+
+</body>
+
+</html>
