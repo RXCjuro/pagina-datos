@@ -5,6 +5,7 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Carrito - EcoVida</title>
 
     <link rel="stylesheet" href="CSS/estilos.css">
@@ -18,17 +19,18 @@
         <p>Mi carrito</p>
     </header>
 
-
     <nav>
         <a href="index.html">Inicio</a>
         <a href="carrito.html">🛒 Carrito</a>
+        <a href="pedidos.html">📦 Pedidos</a>
     </nav>
 
     <main>
+
         <h2>🛒 Productos en mi carrito</h2>
+
         <div id="listaCarrito">
-            <p>El carrito está vacío.</p>
-        </div id="listaCarrito">
+            <p>El carrito esta vacio.</p>
         </div>
 
         <h3>
@@ -39,9 +41,22 @@
             Vaciar carrito
         </button>
 
+        <button onclick="guardarPedido()">
+            Confirmar pedido 📦
+        </button>
+
     </main>
 
-    <script src="JS/ecovida.js"></script>
+    <!-- Firebase -->
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+
+    <!-- JavaScript de EcoVida -->
+
+    <script src="./JS/ecovida.js"></script>
     <script>
         mostrarCarrito();
     </script>
