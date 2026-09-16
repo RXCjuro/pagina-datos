@@ -307,3 +307,123 @@ footer {
     color: white;
     margin-top: 40px;
 }
+
+/* ==========================================================================
+   ESTILOS ESPECÍFICOS PARA EL CARRITO DE COMPRAS
+   ========================================================================== */
+
+main {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 24px;
+    background: var(--color-blanco);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+main h2 {
+    border-bottom: 2px solid var(--color-ecologico);
+    padding-bottom: 8px;
+    margin-top: 0;
+}
+
+/* Contenedor dinámico donde JS renderiza los productos */
+#listaCarrito {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 25px;
+    margin-top: 20px;
+}
+
+/* Esta clase exacta es la que inyecta tu JS en la línea 54 */
+.producto-carrito {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: var(--color-fondo-gris);
+    border: 1px solid var(--borde-suave);
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.producto-carrito:hover {
+    background: #eaeaea;
+}
+
+.producto-carrito h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--texto-oscuro);
+}
+
+.producto-carrito p {
+    margin: 0;
+    font-weight: 600;
+    color: var(--color-ecologico);
+}
+
+/* Botón "Eliminar" individual dentro de cada producto del carrito */
+.producto-carrito button {
+    background-color: transparent;
+    color: var(--color-peligro);
+    border: 1px solid var(--color-peligro);
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.producto-carrito button:hover {
+    background-color: var(--color-peligro);
+    color: white;
+}
+
+/* Sección del Total */
+main h3 {
+    font-size: 1.4rem;
+    text-align: right;
+    margin-bottom: 20px;
+    padding-top: 15px;
+    border-top: 2px solid var(--borde-suave);
+}
+
+#total {
+    font-weight: bold;
+    color: var(--texto-oscuro);
+}
+
+/* Estilos para los botones principales inferiores del carrito */
+main>button {
+    padding: 12px 24px;
+    font-size: 1rem;
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+/* Botón Vaciar Carrito (Llama a vaciarCarrito()) */
+main button[onclick="vaciarCarrito()"] {
+    background-color: #757575;
+}
+
+main button[onclick="vaciarCarrito()"]:hover {
+    background-color: #616161;
+}
+
+/* Botón Confirmar Pedido (Llama a guardarPedido()) */
+main button[onclick="guardarPedido()"] {
+    background-color: var(--color-ecologico);
+    float: right;
+    /* Lo alinea elegantemente a la derecha */
+}
+
+main button[onclick="guardarPedido()"]:hover {
+    background-color: var(--color-ecologico-hover);
+}
+
+/* Limpieza de floats para evitar errores de diseño */
+main::after {
+    content: "";
+    display: table;
+    clear: both;
+}
