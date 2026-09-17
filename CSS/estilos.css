@@ -443,53 +443,55 @@ main::after {
     text-align: center;
 }
 
-/* --- DISEÑO DEL CARRUSEL --- */
+/* --- CONTENEDOR DEL CARRUSEL --- */
 .carrusel-contenedor {
     margin: 40px 0;
     text-align: center;
 }
 
+/* --- VENTANA DEL CARRUSEL --- */
 .carrusel-pantalla {
     width: 100%;
     max-width: 700px;
     height: 350px;
     margin: 0 auto;
     overflow: hidden;
-    /* Oculta las imágenes que no están activas */
     border-radius: 12px;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
     position: relative;
 }
 
+/* --- CINTA CON LAS 7 IMÁGENES --- */
 .carrusel-cinta {
     display: flex;
-    width: 300%;
-    /* 3 ítems = 300% de ancho */
+    width: 700%;
     height: 100%;
-    animation: cambioDiapositiva 12s infinite ease-in-out;
-    /* Animación automática */
+    animation: cambioDiapositiva 21s infinite;
 }
 
+/* --- CADA IMAGEN OCUPA 1/7 DE LA CINTA --- */
 .carrusel-item {
-    width: 100%;
+    flex: 0 0 calc(100% / 7);
+    width: calc(100% / 7);
     height: 100%;
     position: relative;
 }
 
+/* --- IMÁGENES --- */
 .carrusel-item img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    /* Ajusta la imagen sin deformarla */
+    display: block;
 }
 
+/* --- TEXTO SOBRE LA IMAGEN --- */
 .carrusel-texto {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
     background: rgba(46, 125, 50, 0.85);
-    /* Fondo verde eco semitransparente */
     color: white;
     padding: 12px;
     font-size: 1.2rem;
@@ -497,32 +499,59 @@ main::after {
     box-sizing: border-box;
 }
 
-/* ANIMACIÓN DEL CARRUSEL (Transición automática sin JS) */
+
+/* =========================================
+   ANIMACIÓN DE LAS 7 IMÁGENES
+   ========================================= */
+
 @keyframes cambioDiapositiva {
 
+    /* Imagen 1 */
     0%,
-    25% {
+    10% {
         transform: translateX(0);
     }
 
-    /* Muestra Imagen 1 */
-    33%,
-    58% {
-        transform: translateX(-33.33%);
+    /* Imagen 2 */
+    14%,
+    24% {
+        transform: translateX(-14.2857%);
     }
 
-    /* Muestra Imagen 2 */
-    66%,
-    91% {
-        transform: translateX(-66.66%);
+    /* Imagen 3 */
+    28%,
+    38% {
+        transform: translateX(-28.5714%);
     }
 
-    /* Muestra Imagen 3 */
+    /* Imagen 4 */
+    42%,
+    52% {
+        transform: translateX(-42.8571%);
+    }
+
+    /* Imagen 5 */
+    56%,
+    66% {
+        transform: translateX(-57.1428%);
+    }
+
+    /* Imagen 6 */
+    70%,
+    80% {
+        transform: translateX(-71.4285%);
+    }
+
+    /* Imagen 7 */
+    84%,
+    94% {
+        transform: translateX(-85.7142%);
+    }
+
+    /* Regresa a la primera */
     100% {
         transform: translateX(0);
     }
-
-    /* Regresa a la 1 */
 }
 
 /* --- CUADROS DE MISIÓN Y VISIÓN --- */
