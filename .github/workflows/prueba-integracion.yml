@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+
   pull_request:
     branches:
       - master
@@ -13,8 +14,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
       - name: Descargar código del repositorio
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
 
       - name: Verificar archivos principales
         run: |
@@ -31,11 +38,6 @@ jobs:
           test -d JS
           echo "Las carpetas CSS y JS existen correctamente."
 
-      - name: Prueba de integración
+      - name: Ejecutar prueba de integración
         run: |
-          echo "Iniciando prueba de integración..."
-          echo "Código descargado correctamente desde GitHub."
-          echo "Archivos HTML encontrados."
-          echo "Archivos CSS y JavaScript encontrados."
-          echo "Configuración de Firebase encontrada."
-          echo "PRUEBA DE INTEGRACIÓN EXITOSA."
+          node tests/ecovida.test.js
