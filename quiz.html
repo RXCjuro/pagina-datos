@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>EcoVida - Encuentra tu producto ideal</title>
+
+    <!-- CSS que ya utiliza tu proyecto -->
+    <link rel="stylesheet" href="CSS/estilos.css">
+
+    <style>
+        /* ==========================
+            QUIZ ECOVIDA
+        ========================== */
+
+        .quiz {
+            max-width: 850px;
+            margin: 50px auto;
+            padding: 40px;
+
+            background: white;
+
+            border-radius: 20px;
+
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        }
+
+
+        .quiz-titulo {
+            text-align: center;
+
+            color: #2e7d32;
+
+            font-size: 35px;
+
+            margin-bottom: 10px;
+        }
+
+
+        .quiz-descripcion {
+            text-align: center;
+
+            color: #666;
+
+            margin-bottom: 35px;
+
+            font-size: 17px;
+
+            line-height: 1.6;
+        }
+
+
+        /* PREGUNTA */
+
+        .pregunta {
+            margin-bottom: 35px;
+        }
+
+
+        .pregunta h3 {
+            color: #333;
+
+            margin-bottom: 15px;
+
+            font-size: 20px;
+        }
+
+
+        /* OPCIONES */
+
+        .opcion {
+
+            display: block;
+
+            padding: 18px;
+
+            margin-bottom: 12px;
+
+            background: #f5f8f3;
+
+            border: 2px solid #e0e0e0;
+
+            border-radius: 12px;
+
+            cursor: pointer;
+
+            transition: 0.3s;
+        }
+
+
+        .opcion:hover {
+
+            background: #e8f5e9;
+
+            border-color: #4caf50;
+
+            transform: translateX(5px);
+        }
+
+
+        .opcion input {
+
+            margin-right: 10px;
+        }
+
+
+        .opcion:has(input:checked) {
+
+            background: #dff2df;
+
+            border-color: #2e7d32;
+
+            font-weight: bold;
+        }
+
+
+        /* BOTÓN */
+
+        .boton-quiz {
+
+            width: 100%;
+
+            padding: 17px;
+
+            background: #2e7d32;
+
+            color: white;
+
+            border: none;
+
+            border-radius: 12px;
+
+            font-size: 18px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+            transition: 0.3s;
+        }
+
+
+        .boton-quiz:hover {
+
+            background: #1b5e20;
+
+            transform: translateY(-2px);
+        }
+
+
+        /* RESULTADO */
+
+        #resultado {
+
+            display: none;
+
+            margin-top: 35px;
+
+            padding: 30px;
+
+            background: #e8f5e9;
+
+            border-radius: 20px;
+
+            text-align: center;
+        }
+
+
+        .producto-recomendado {
+
+            background: white;
+
+            padding: 30px;
+
+            margin-top: 20px;
+
+            border-radius: 15px;
+
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.10);
+        }
+
+
+        .producto-recomendado .emoji {
+
+            font-size: 70px;
+
+            margin-bottom: 10px;
+        }
+
+
+        .producto-recomendado h3 {
+
+            color: #2e7d32;
+
+            font-size: 27px;
+
+            margin-bottom: 10px;
+        }
+
+
+        .precio {
+
+            color: #2e7d32;
+
+            font-size: 25px;
+
+            font-weight: bold;
+
+            margin: 15px;
+        }
+
+
+        .boton-producto {
+
+            display: inline-block;
+
+            padding: 12px 25px;
+
+            background: #2e7d32;
+
+            color: white;
+
+            text-decoration: none;
+
+            border-radius: 10px;
+
+            margin-top: 10px;
+        }
+
+
+        .boton-producto:hover {
+
+            background: #1b5e20;
+        }
+
+
+        /* CELULAR */
+
+        @media(max-width: 600px) {
+
+            .quiz {
+
+                width: 94%;
+
+                padding: 25px;
+
+                margin: 25px auto;
+            }
+
+
+            .quiz-titulo {
+
+                font-size: 27px;
+            }
+
+
+            .pregunta h3 {
+
+                font-size: 18px;
+            }
+
+        }
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- ==========================
+        ENCABEZADO
+========================== -->
+
+    <header>
+
+        <h1>🌱 EcoVida</h1>
+
+        <p>Productos ecológicos y reutilizables</p>
+
+    </header>
+
+
+    <!-- ==========================
+        MENÚ
+========================== -->
+
+    <nav>
+
+        <a href="index.html">Inicio</a>
+
+        <a href="index.html#productos">Productos</a>
+
+        <a href="nosotros.html">Nosotros</a>
+
+        <a href="index.html#contacto">Contacto</a>
+
+        <a href="pedidos.html">📦 Pedidos</a>
+
+        <a href="carrito.html">🛒 Carrito</a>
+
+        <a href="quiz.html">✨ Quiz</a>
+
+    </nav>
+
+
+    <!-- ==========================
+        QUIZ
+========================== -->
+
+    <section class="quiz">
+
+        <h2 class="quiz-titulo">
+            Encuentra tu producto ideal 🌿
+        </h2>
+
+
+        <p class="quiz-descripcion">
+
+            Responde estas preguntas y descubre qué producto
+            de EcoVida se adapta mejor a tus necesidades.
+
+        </p>
+
+
+        <form id="quizForm">
+
+
+            <!-- PREGUNTA 1 -->
+
+            <div class="pregunta">
+
+                <h3>
+                    1. ¿Qué buscas principalmente?
+                </h3>
+
+
+                <label class="opcion">
+
+                    <input type="radio" name="objetivo" value="compras" required>
+
+                    🛍️ Reducir el uso de bolsas plásticas
+
+                </label>
+
+
+                <label class="opcion">
+
+                    <input type="radio" name="objetivo" value="agua">
+
+                    💧 Reducir el uso de botellas descartables
+
+                </label>
+
+
+                <label class="opcion">
+
+                    <input type="radio" name="objetivo" value="bambu">
+
+                    🎋 Utilizar materiales sostenibles
+
+                </label>
+
+
+                <label class="opcion">
+
+                    <input type="radio" name="objetivo" value="limpieza">
+
+                    🧼 Utilizar productos de limpieza ecológicos
+
+                </label>
+
+            </div>
+
+
+
+            <!-- PREGUNTA 2 -->
+
+            <div class="pregunta">
+
+                <h3>
+                    2. ¿Qué característica valoras más?
+                </h3>
+
+
+                <label class="opcion">
+
+                    <input type="radio" name="caracteristica" value="reutilizable" required>
+
+                    ♻️ Que sea reutilizable
+
+                </label>
+
+
+                <label class="opcion">
+
+                    <input type="radio" name="caracteristica" value="sostenible">
+
+                    🌱 Que sea sostenible
+
+                </label>
+
+
+                <label class="opcion">
+
+                    <input type="radio" name="caracteristica" value="practico">
+
+                    ⭐ Que sea práctico
+
+                </label>
+
+
+                <label class="opcion">
+
+                    <input type="radio" name="caracteristica" value="economico">
+
+                    💰 Que sea económico
+
+                </label>
+
+            </div>
+
+
+
+            <!-- PREGUNTA 3 -->
+
+            <div class="pregunta">
+
+                <h3>
+                    3. ¿Cuánto quieres gastar?
+                </h3>
+
+
+                <label class="opcion">
+
+                    <input type="radio" name="presupuesto" value="bajo" required>
+
+                    💵 Menos de S/ 15
+
+                </label>
+
+
+                <label class="opcion">
+
+                    <input type="radio" name="presupuesto" value="medio">
+
+                    💵 Entre S/ 15 y S/ 20
+
+                </label>
+
+
+                <label class="opcion">
+
+                    <input type="radio" name="presupuesto" value="alto">
+
+                    💵 Más de S/ 20
+
+                </label>
+
+            </div>
+
+
+
+            <!-- BOTÓN -->
+
+            <button type="submit" class="boton-quiz">
+
+                🔍 Descubrir mi producto ideal
+
+            </button>
+
+        </form>
+
+
+
+        <!-- ==========================
+            RESULTADO
+    ========================== -->
+
+        <div id="resultado">
+
+            <h2>
+                Tu producto recomendado 🌿
+            </h2>
+
+
+            <div id="producto"></div>
+
+
+            <button class="boton-quiz" onclick="reiniciarQuiz()">
+
+                🔄 Realizar el quiz nuevamente
+
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- ==========================
+        PIE DE PÁGINA
+========================== -->
+
+    <footer>
+
+        <p>
+            © 2026 EcoVida - Productos sostenibles
+        </p>
+
+    </footer>
+
+
+
+    <!-- ==========================
+    JAVASCRIPT
+========================== -->
+
+    <script>
+
+        document
+            .getElementById("quizForm")
+            .addEventListener("submit", function (event) {
+
+                event.preventDefault();
+
+
+                /* Obtener respuestas */
+
+                const objetivo =
+                    document.querySelector(
+                        'input[name="objetivo"]:checked'
+                    ).value;
+
+
+                const presupuesto =
+                    document.querySelector(
+                        'input[name="presupuesto"]:checked'
+                    ).value;
+
+
+
+                let producto = "";
+
+
+
+                /* ==========================
+                    RECOMENDACIONES
+                ========================== */
+
+
+                if (objetivo === "compras") {
+
+                    producto =
+
+                        <div class="producto-recomendado">
+
+                            <div class="emoji">
+                                🛍️
+                            </div>
+
+                            <h3>
+                                Bolsas de tela
+                            </h3>
+
+                            <p>
+                                Una alternativa reutilizable para
+                                tus compras diarias y una forma de
+                                reducir el uso de bolsas plásticas.
+                            </p>
+
+                            <div class="precio">
+                                S/ 15.00
+                            </div>
+
+                            <a
+                                href="index.html#productos"
+                                class="boton-producto"
+                            >
+                                Ver producto
+                            </a>
+
+                        </div>
+
+                }
+
+
+                else if (objetivo === "agua") {
+
+                    producto =
+
+                        < div class="producto-recomendado" >
+
+                            <div class="emoji">
+                                🍶
+                            </div>
+
+                            <h3>
+                                Botella reutilizable
+                            </h3>
+
+                            <p>
+                                Una opción práctica para reducir
+                                el uso de botellas descartables
+                                durante el día.
+                            </p>
+
+                            <div class="precio">
+                                S/ 25.00
+                            </div>
+
+                            <a
+                                href="index.html#productos"
+                                class="boton-producto"
+                            >
+                                Ver producto
+                            </a>
+
+                        </div >
+
+                }
+
+
+                else if (objetivo === "bambu") {
+
+                    producto =
+
+                        <div class="producto-recomendado">
+
+                            <div class="emoji">
+                                🎋
+                            </div>
+
+                            <h3>
+                                Artículos de bambú
+                            </h3>
+
+                            <p>
+                                Productos elaborados con materiales
+                                sostenibles para tu vida cotidiana.
+                            </p>
+
+                            <div class="precio">
+                                S/ 12.00
+                            </div>
+
+                            <a
+                                href="index.html#productos"
+                                class="boton-producto"
+                            >
+                                Ver producto
+                            </a>
+
+                        </div>
+
+                }
+
+
+                else {
+
+                    producto =
+
+                        < div class="producto-recomendado" >
+
+                            <div class="emoji">
+                                🧼
+                            </div>
+
+                            <h3>
+                                Jabón biodegradable
+                            </h3>
+
+                            <p>
+                                Una alternativa de limpieza más
+                                amigable con el medio ambiente.
+                            </p>
+
+                            <div class="precio">
+                                S/ 18.00
+                            </div>
+
+                            <a
+                                href="index.html#productos"
+                                class="boton-producto"
+                            >
+                                Ver producto
+                            </a>
+
+                        </div >
+
+                }
+
+
+
+                /* Mostrar resultado */
+
+                document
+                    .getElementById("producto")
+                    .innerHTML = producto;
+
+
+                document
+                    .getElementById("quizForm")
+                    .style.display = "none";
+
+
+                document
+                    .getElementById("resultado")
+                    .style.display = "block";
+
+
+                document
+                    .getElementById("resultado")
+                    .scrollIntoView({
+                        behavior: "smooth"
+                    });
+
+            });
+
+
+
+        /* ==========================
+            REINICIAR QUIZ
+        ========================== */
+
+        function reiniciarQuiz() {
+
+            document
+                .getElementById("quizForm")
+                .reset();
+
+
+            document
+                .getElementById("quizForm")
+                .style.display = "block";
+
+
+            document
+                .getElementById("resultado")
+                .style.display = "none";
+
+
+            window.scrollTo({
+
+                top: 0,
+
+                behavior: "smooth"
+
+            });
+
+        }
+
+    </script>
+
+
+</body>
+
+</html>
