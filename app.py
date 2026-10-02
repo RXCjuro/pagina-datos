@@ -10,7 +10,7 @@ app = Flask(__name__)
 CORS(app) 
 
 
-MONGO_URI = "mongodb+srv://gluuglee_db_user:Ab123456$$ga@cluster0.thne8oy.mongodb.net/?appName=Cluster0"
+MONGO_URI = "mongodb+srv://gluuglee_db_user:Ecovida2025@cluster0.thne8oy.mongodb.net/?appName=Cluster0"
 SECRET_KEY = "LLAVE_SECRETA_SUPER_SEGURA_ECOVIDA" # Llave para firmar tus tokens JWT reales
 
 try:

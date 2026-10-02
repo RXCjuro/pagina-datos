@@ -1,3 +1,38 @@
+// ==============================================================
+// 🔐 GUARDIÁN DE SEGURIDAD INTERACTIVO (MIDDLEWARE DE ACCESO)
+// ==============================================================
+(function verificarAccesoObligatorio() {
+    const paginasPublicas = ["login.html"];
+    const paginaActual = window.location.pathname.split("/").pop();
+    const tokenSesionReal = localStorage.getItem("authToken");
+
+    // 1. CONTROL DE SEGURIDAD: Bloqueo de intrusos
+    if (!paginasPublicas.includes(paginaActual) && !tokenSesionReal && paginaActual !== "") {
+        console.warn("[SEGURIDAD] Acceso denegado. Se requiere autenticación en Python/MongoDB.");
+        alert("🔒 Acceso Restringido: Debe iniciar sesión con su cuenta institucional de EcoVida antes de interactuar con la plataforma.");
+        window.location.href = "login.html";
+        return;
+    }
+
+    // 2. INTERFAZ DINÁMICA: Ocultar/Mostrar botones según el estado de la sesión
+    // Esperamos a que el HTML termine de cargar por completo en el navegador
+    document.addEventListener("DOMContentLoaded", function () {
+        const btnLogin = document.getElementById("btn-login-nav");
+        const btnLogout = document.getElementById("btn-logout-nav");
+
+        if (tokenSesionReal) {
+            // Si el usuario ya inició sesión con éxito en Python/MongoDB:
+            if (btnLogin) btnLogin.style.display = "none";     // Ocultamos el botón verde
+            if (btnLogout) btnLogout.style.display = "block";  // Mostramos el botón rojo
+        } else {
+            // Si no hay ninguna sesión activa:
+            if (btnLogin) btnLogin.style.display = "block";   // Mostramos el botón verde
+            if (btnLogout) btnLogout.style.display = "none";    // Ocultamos el botón rojo
+        }
+    });
+})();
+
+
 // ==========================================
 // CONFIGURACIÓN ARQUITECTURA MULTICLOUD (RENDER)
 // ==========================================
@@ -339,4 +374,76 @@ function eliminarPedido(idPedido) {
 
         });
 
+}
+
+// ==============================================================
+// 🔑 MICROSERVICIO DE AUTENTICACIÓN REAL (PYTHON + MONGODB)
+// ==============================================================
+
+const API_AUTH_URL = "http://localhost:5000/api/login";
+
+/**
+ * Procesa el inicio de sesión real enviando datos al backend de Python
+ */
+function iniciarSesionReal(email, password) {
+    let credenciales = {
+        correo: email,
+        contrasena: password
+    };
+
+    fetch(API_AUTH_URL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(credenciales)
+    })
+        .then(function (response) {
+            return response.json().then(function (data) {
+                if (!response.ok) {
+                    // Captura el mensaje de error real enviado desde Python y MongoDB Atlas
+                    throw new Error(data.error || "Fallo en la autenticación");
+                }
+                return data;
+            });
+        })
+        .then(function (data) {
+            console.log("[JWT] Token de sesión real recibido de Python:", data.token);
+            alert("🔑 ¡Bienvenido, " + data.usuario.nombre + "!");
+
+            // Guardamos el token y datos reales de manera persistente en el navegador
+            localStorage.setItem("authToken", data.token);
+            localStorage.setItem("usuarioLogueado", JSON.stringify(data.usuario));
+
+            // CORRECCIÓN DE RUTA: Redirección relativa profesional que funciona en Live Server y Firebase
+            const rutaActual = window.location.pathname;
+            const nuevaRuta = rutaActual.replace("login.html", "index.html");
+            window.location.href = nuevaRuta;
+        })
+        .catch(function (error) {
+            console.error("[AUTH ERROR]:", error.message);
+            alert("❌ Error de acceso: " + error.message);
+        });
+}
+
+/**
+ * Manejador del evento que captura el envío del formulario HTML de login
+ */
+function manejarFormularioLogin(evento) {
+    evento.preventDefault(); // Evita que la página se recargue por defecto
+
+    let email = document.getElementById("loginEmail").value;
+    let contrasena = document.getElementById("loginPassword").value;
+
+    iniciarSesionReal(email, contrasena);
+}
+
+/**
+ * Destruye la sesión actual eliminando los tokens criptográficos del navegador
+ */
+function cerrarSesionCorporativa() {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("usuarioLogueado");
+    alert("🔒 Sesión finalizada de manera segura.");
+    window.location.href = "login.html";
 }
