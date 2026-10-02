@@ -1,36 +1,45 @@
 // ==============================================================
-// 🔐 GUARDIÁN DE SEGURIDAD INTERACTIVO (MIDDLEWARE DE ACCESO)
+// 🔐 MIDDLEWARE DE SEGURIDAD PERIMETRAL (BLOQUEO ABSOLUTO)
 // ==============================================================
 (function verificarAccesoObligatorio() {
-    const paginasPublicas = ["login.html"];
-    const paginaActual = window.location.pathname.split("/").pop();
+    // 1. EXTRAER EL ARCHIVO ACTUAL DE LA URL
+    const rutaActual = window.location.pathname;
+    const paginaActual = rutaActual.substring(rutaActual.lastIndexOf("/") + 1);
+
+    // 2. LEER EL TOKEN EMITIDO POR PYTHON Y MONGODB ATLAS
     const tokenSesionReal = localStorage.getItem("authToken");
 
-    // 1. CONTROL DE SEGURIDAD: Bloqueo de intrusos
-    if (!paginasPublicas.includes(paginaActual) && !tokenSesionReal && paginaActual !== "") {
-        console.warn("[SEGURIDAD] Acceso denegado. Se requiere autenticación en Python/MongoDB.");
-        alert("🔒 Acceso Restringido: Debe iniciar sesión con su cuenta institucional de EcoVida antes de interactuar con la plataforma.");
-        window.location.href = "login.html";
-        return;
+    // 3. LOGICA DE RESTRICCIÓN PERIMETRAL
+    // Si la página actual NO es el login, y el usuario NO tiene un token válido...
+    if (paginaActual !== "login.html" && !tokenSesionReal) {
+
+        // Bloqueamos la ejecución inmediata deteniendo el renderizado
+        console.warn("[SEGURIDAD CRÍTICA] Intento de bypass detectado. Redirección forzosa.");
+
+        alert("🔒 Acceso Restringido:\n\nDebe autenticarse con sus credenciales institucionales de Python y MongoDB Atlas antes de interactuar con la plataforma EcoVida.");
+
+        // Redirección forzosa al módulo de identidad
+        // Usamos una ruta relativa limpia para evitar que falle en subcarpetas o Live Server
+        if (paginaActual === "" || paginaActual === "index.html" || paginaActual === "nosotros.html" || paginaActual === "carrito.html" || paginaActual === "pedidos.html" || paginaActual === "quiz.html") {
+            window.location.href = "login.html";
+        }
     }
 
-    // 2. INTERFAZ DINÁMICA: Ocultar/Mostrar botones según el estado de la sesión
-    // Esperamos a que el HTML termine de cargar por completo en el navegador
+    // 4. CONTROL DE COMPORTAMIENTO DE BOTONES DINÁMICOS
     document.addEventListener("DOMContentLoaded", function () {
         const btnLogin = document.getElementById("btn-login-nav");
         const btnLogout = document.getElementById("btn-logout-nav");
 
         if (tokenSesionReal) {
-            // Si el usuario ya inició sesión con éxito en Python/MongoDB:
-            if (btnLogin) btnLogin.style.display = "none";     // Ocultamos el botón verde
-            if (btnLogout) btnLogout.style.display = "block";  // Mostramos el botón rojo
+            if (btnLogin) btnLogin.style.display = "none";     // Oculta "Iniciar Sesión"
+            if (btnLogout) btnLogout.style.display = "block";    // Muestra "Cerrar Sesión"
         } else {
-            // Si no hay ninguna sesión activa:
-            if (btnLogin) btnLogin.style.display = "block";   // Mostramos el botón verde
-            if (btnLogout) btnLogout.style.display = "none";    // Ocultamos el botón rojo
+            if (btnLogin) btnLogin.style.display = "block";   // Muestra "Iniciar Sesión"
+            if (btnLogout) btnLogout.style.display = "none";    // Oculta "Cerrar Sesión"
         }
     });
 })();
+
 
 
 // ==========================================
