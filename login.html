@@ -93,44 +93,33 @@
         function manejarFormularioRegistro(evento) {
             evento.preventDefault();
 
-            // 1. Recolectamos los valores usando los IDs exactos del HTML
             const nombre = document.getElementById("regNombre").value;
             const correo = document.getElementById("regEmail").value;
             const contrasena = document.getElementById("regPassword").value;
 
-            console.log("[MULTICLOUD] Transmitiendo paquete de registro hacia backend Python...");
+            console.log("[MULTICLOUD] Transmitiendo paquete de registro hacia producción en Render...");
 
-            // 2. Enviamos la petición HTTP al puerto 5000 de Flask
-            fetch("http://localhost:5000/api/register", {
+            // Consumimos el endpoint correspondiente concatenando la URL global
+            fetch(`${BASE_RENDER_URL}/api/register`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                // IMPORTANTÍSIMO: Las llaves deben coincidir exactamente con lo que busca Python
-                body: JSON.stringify({
-                    nombre: nombre,      // Python leerá: datos.get('nombre')
-                    correo: correo,      // Python leerá: datos.get('correo')
-                    contrasena: contrasena // Python leerá: datos.get('contrasena')
-                })
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nombre: nombre, correo: correo, contrasena: contrasena })
             })
                 .then(function (response) {
                     return response.json().then(function (data) {
-                        if (!response.ok) {
-                            // Si Python responde con error (como correo duplicado), lanzamos ese error real
-                            throw new Error(data.error || "Error estructural en el alta");
-                        }
+                        if (!response.ok) throw new Error(data.error || "Error estructural en el alta");
                         return data;
                     });
                 })
                 .then(function (data) {
-                    alert("✅ ¡Registro exitoso en MongoDB Atlas! Ya puedes iniciar sesión de forma segura.");
-                    cambiarPestaña('login'); // Te cambia automáticamente a la pestaña de ingresar
+                    alert("✅ ¡Registro exitoso en MongoDB Atlas! Su módulo de identidad ha sido inicializado.");
+                    cambiarPestaña('login');
                 })
                 .catch(function (error) {
-                    console.error("[REGISTRO ERROR]:", error.message);
-                    alert("❌ Error de registro: " + error.message);
+                    alert("❌ Fallo en la operación: " + error.message);
                 });
         }
+
 
     </script>
     <!-- Inyección de la lógica operacional y controladores visuales de diseño -->
