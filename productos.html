@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECO VIDA</title>
+
+    <link rel="stylesheet" href="CSS/estilos.css">
+</head>
+
+<body>
+
+    <!--Encabezado -->
+    <header>
+        <h1>🌱 EcoVida</h1>
+        <p>Productos ecológicos y reutilizables</p>
+    </header>
+
+    <!-- Menú -->
+    <nav>
+        <a href="index.html">Inicio</a>
+        <a href="#·">Productos</a>
+        <a href="nosotros.html">Nosotros</a>
+        <a href="#contacto">Contacto</a>
+        <a href="pedidos.html">📦 Pedidos</a>
+        <a href="carrito.html">🛒 Carrito</a>
+        <a href="quiz.html">✨ Quiz</a>
+    </nav>
+
+
+    <!-- Productos -->
+    <section id="productos">
+
+        <h2>Nuestros productos</h2>
+
+        <div class="productos">
+            <h3>🛍️ Bolsas de tela</h3>
+            <p>Una alternativa reutilizable para tus compras.</p>
+            <p>Precio: S/ 15.00</p>
+            <button onclick="agregarProducto('Bolsa de tela tocuyo organico', 15)">Agregar al carrito</button>
+        </div>
+
+        <div>
+            <h3>🍶 Botellas reutilizables</h3>
+            <p>Botellas diseñadas para reducir el uso de plástico.</p>
+            <p>Precio: S/ 25.00</p>
+            <button onclick="agregarProducto('Botella reutilizable', 25)">Agregar al carrito</button>
+        </div>
+
+        <div>
+            <h3>🎋 Artículos de bambú</h3>
+            <p>Productos elaborados con materiales sostenibles.</p>
+            <p>Precio: S/ 12.00</p>
+            <button onclick="agregarProducto('Artículos de bambú', 12)">Agregar al carrito</button>
+        </div>
+
+        <div>
+            <h3>🧼 Jabon biodegradable</h3>
+            <p>Productos de limpieza más amigables con el ambiente.</p>
+            <p>Precio: S/ 15.00</p>
+            <button onclick="agregarProducto('Jabon biodegrabable', 15)">Agregar al carrito</button>
+        </div>
+
+
+        <div>
+            <h3>🧼 Jabon de coco</h3>
+            <p>Productos de limpieza más amigables con el ambiente.</p>
+            <p>Precio: S/ 7.00</p>
+            <button onclick="agregarProducto('Jabon de coco', 7)">Agregar al carrito</button>
+        </div>        
+
+
+        <div>
+            <h3>🧼 Mondadiente de bambu</h3>
+            <p>Productos de limpieza más amigables con el ambiente.</p>
+            <p>Precio: S/ 18.00</p>
+            <button onclick="agregarProducto('Mondadiente de bambu', 18)">Agregar al carrito</button>
+        </div>
+
+
+        <div>
+            <h3>🧼 MIel de abeja</h3>
+            <p>Productos de limpieza más amigables con el ambiente.</p>
+            <p>Precio: S/ 38.00</p>
+            <button onclick="agregarProducto('Miel de abeja', 38)">Agregar al carrito</button>
+        </div>
+        
+    </section>
+
+    <!-- Nosotros -->
+    <section id="nosotros">
+        <h2>Sobre EcoVida</h2>
+        <p>
+            EcoVida es una tienda en línea especializada en productos
+            ecológicos y reutilizables. Buscamos ofrecer alternativas
+            sostenibles al consumo diario mediante un canal web propio,
+            cercano y fácil de usar.
+        </p>
+    </section>
+
+    <!-- Contacto -->
+    <section id="contacto">
+        <h2>Contacto</h2>
+        <p>¿Tienes alguna consulta? Escríbenos.</p>
+        <input type="text" placeholder="Nombre">
+        <input type="email" placeholder="Correo">
+        <textarea placeholder="Mensaje"></textarea>
+        <button>Enviar mensaje</button>
+    </section>
+
+    <!-- Pie de página -->
+    <footer>
+        <p>© 2026 EcoVida - Productos sostenibles</p>
+    </footer>
+
+    <!-- JavaScript-->
+    <script src="JS/ecovida.js"></script>
+
+</body>
+
+</html>
