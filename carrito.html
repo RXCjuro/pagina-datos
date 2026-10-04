@@ -21,8 +21,27 @@
 
     <nav>
         <a href="index.html">Inicio</a>
-        <a href="carrito.html">🛒 Carrito</a>
+        <a href="index.html#productos">Productos</a>
+        <a href="index.html#nosotros">Nosotros</a>
+        <a href="index.html#contacto">Contacto</a>
+        <a href="#">🛒 Carrito</a>
         <a href="pedidos.html">📦 Pedidos</a>
+        <a href="quiz.html">✨ Quiz</a>
+        <!-- Componente de Cierre de Sesión Corporativo -->
+        <button onclick="cerrarSesionCorporativa()" id="btn-logout-nav" style="
+        background-color: #ef4444; 
+        color: white; 
+        border: none; 
+        padding: 8px 16px; 
+        border-radius: 6px; 
+        cursor: pointer; 
+        font-weight: 600;
+        font-family: sans-serif;
+        transition: background 0.2s;
+        display: none; /* Se oculta por defecto hasta que el JS verifique la sesión */
+    " onmouseover="this.style.backgroundColor='#dc2626'" onmouseout="this.style.backgroundColor='#ef4444'">
+            🚪 Cerrar Sesión
+        </button>
     </nav>
 
     <main>
