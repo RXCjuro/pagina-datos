@@ -205,8 +205,7 @@ def login():
             }), 401
 
         # Evaluación segura del Hash binario almacenado
-        if usuario and bcrypt.checkpw(password.encode('utf-8'), usuario['contrasena']):
-            
+        if not bcrypt.checkpw(password.encode('utf-8'), usuario['contrasena']):
             return jsonify({"error": "Correo o contraseña incorrectos"}), 401
             
         # Determinar rol desde Python
