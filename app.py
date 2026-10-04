@@ -12,40 +12,33 @@ app = Flask(__name__)
 # CORS habilitado de manera global para permitir peticiones HTTP distribuidas
 CORS(app) 
 
-
-#MONGO_URI = "mongodb+srv://gluuglee_db_user:Ab123456$$ga@cluster0.thne8oy.mongodb.net/?appName=Cluster0"
-#SECRET_KEY = "LLAVE_SECRETA_SUPER_SEGURA_ECOVIDA" # Llave para firmar tus tokens JWT reales
-
 #============================================================
-#CONFIGURACION
+# CONFIGURACION DE ENTORNO SEGURA
 #============================================================
-
 MONGO_URI = os.environ.get("MONGO_URI")
 SECRET_KEY = os.environ.get(
     "SECRET_KEY",
     "CAMBIAR_ESTA_LLAVE_EN_RENDER"
 )
 
-# Correo que tendrá permisos de MASTER
+# Correo que tendrá privilegios jerárquicos de MASTER
 MASTER_EMAIL = os.environ.get(
     "MASTER_EMAIL",
     "master@ecovida.com"
 )
 
-# URL de Firebase Realtime Database
+# URL base de la base de datos distribuida en Firebase
 FIREBASE_DB_URL = os.environ.get(
     "FIREBASE_DB_URL",
     "https://pagina-hosting-c6ec9-default-rtdb.firebaseio.com"
 )
 
 #========================================================
-#CONEXION CON MONGO ATLAS
+# CONEXION CON MONGO ATLAS
 #========================================================
-
 try:
     if not MONGO_URI:
-        raise Exception("No se encontró la variable MONGO_URI")
-    # Inicializamos el cliente de MongoDB apuntando a la nube
+        raise Exception("No se encontró la variable de entorno MONGO_URI")
     client = MongoClient(MONGO_URI)
     db = client['ecovida_db']           
     usuarios_col = db['usuarios']       
@@ -55,37 +48,27 @@ except Exception as e:
     
 
 # =========================================================
-# FUNCIÓN PARA DETERMINAR EL ROL
+# CONTROLADOR DE ROLES (MASTER VS USUARIO)
 # =========================================================
-
 def obtener_rol(correo):
-
     if correo.lower() == MASTER_EMAIL.lower():
-
         return "master"
-
     return "usuario"
 
 # =========================================================
-# FUNCIÓN PARA LEER EL TOKEN JWT
+# MIDDLEWARE DE EXTRACCIÓN Y VERIFICACIÓN DE TOKENS JWT
 # =========================================================
-
 def obtener_usuario_desde_token():
-
     authorization = request.headers.get("Authorization")
-
     if not authorization:
-
         return None, "No se proporcionó el token de acceso"
 
     if not authorization.startswith("Bearer "):
-
         return None, "Formato de token inválido"
 
     token = authorization.split(" ")[1]
 
     try:
-
         datos_token = jwt.decode(
             token,
             SECRET_KEY,
@@ -93,21 +76,14 @@ def obtener_usuario_desde_token():
         )
 
         correo = datos_token.get("correo")
-
         if not correo:
+            return None, "El token no contiene un correo válido"
 
-            return None, "El token no contiene un correo"
-
-        usuario = usuarios_col.find_one({
-            "correo": correo
-        })
-
+        usuario = usuarios_col.find_one({"correo": correo})
         if not usuario:
-
-            return None, "El usuario no existe"
+            return None, "El usuario asociado al token no existe"
 
         rol = obtener_rol(correo)
-
         return {
             "nombre": usuario.get("nombre"),
             "correo": correo,
@@ -115,16 +91,11 @@ def obtener_usuario_desde_token():
         }, None
 
     except jwt.ExpiredSignatureError:
-
-        return None, "El token ha expirado"
-
+        return None, "El token de sesión ha expirado"
     except jwt.InvalidTokenError:
-
-        return None, "Token inválido"
-
+        return None, "Token de acceso inválido"
     except Exception as e:
-
-        return None, f"Error al validar el token: {str(e)}"
+        return None, f"Error al validar credenciales criptográficas: {str(e)}"
 
 # ==========================================
 # ENDPOINT 1: ALTA DE IDENTIDADES (REGISTER)
@@ -134,9 +105,8 @@ def register():
     try:
         datos = request.json
         if not datos:
-            return jsonify({
-                "error": "No se recibieron datos"
-            }), 400
+            return jsonify({"error": "No se recibieron datos"}), 400
+            
         nombre = datos.get('nombre')
         email = datos.get('correo')
         password = datos.get('contrasena')
@@ -144,33 +114,32 @@ def register():
         if not nombre or not email or not password:
             return jsonify({"error": "Todos los campos son obligatorios"}), 400
         
-        # Normalizamos el correo
         email = email.lower().strip()
 
-        # Validación básica de contraseña
         if len(password) < 8:
             return jsonify({"error": "La contraseña debe tener mínimo 8 caracteres"}), 400
 
-        # Validación real en MongoDB Atlas para evitar correos duplicados
         if usuarios_col.find_one({"correo": email}):
             return jsonify({"error": "El correo ya se encuentra registrado"}), 400
 
-        # Encriptación criptográfica asimétrica (Salt Hashing) usando bcrypt
         salt = bcrypt.gensalt()
         password_encriptada = bcrypt.hashpw(password.encode('utf-8'), salt)
 
         nuevo_usuario = {
             "nombre": nombre,
             "correo": email,
-            "contrasena": password_encriptada # Se persiste el hash binario seguro
+            "contrasena": password_encriptada
         }
         
         usuarios_col.insert_one(nuevo_usuario)
-        return jsonify({"message": "Usuario registrado exitosamente en MongoDB Atlas", "usuario": {
+        return jsonify({
+            "message": "Usuario registrado exitosamente en MongoDB Atlas", 
+            "usuario": {
                 "nombre": nombre,
                 "correo": email,
                 "rol": obtener_rol(email)
-            }}), 201
+            }
+        }), 201
 
     except Exception as e:
         return jsonify({"error": f"Error interno en el servidor: {str(e)}"}), 500
@@ -183,10 +152,7 @@ def login():
     try:
         datos = request.json
         if not datos:
-
-            return jsonify({
-                "error": "No se recibieron datos"
-            }), 400
+            return jsonify({"error": "No se recibieron datos"}), 400
             
         email = datos.get('correo')
         password = datos.get('contrasena')
@@ -196,30 +162,20 @@ def login():
         
         email = email.lower().strip()
 
-        # Buscamos el documento del usuario en la nube de Atlas
         usuario = usuarios_col.find_one({"correo": email})
         if not usuario:
+            return jsonify({"error": "Correo o contraseña incorrectos"}), 401
 
-            return jsonify({
-                "error": "Correo o contraseña incorrectos"
-            }), 401
-
-        # Evaluación segura del Hash binario almacenado
         if not bcrypt.checkpw(password.encode('utf-8'), usuario['contrasena']):
             return jsonify({"error": "Correo o contraseña incorrectos"}), 401
             
-        # Determinar rol desde Python
         rol = obtener_rol(email)
 
-        # Crear JWT
         token = jwt.encode({
-
             "correo": email,
+            "nombre": usuario["nombre"],
             "rol": rol,
-            "exp": datetime.datetime.now(
-                datetime.timezone.utc
-            ) + datetime.timedelta(hours=2)
-
+            "exp": datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=2)
         }, SECRET_KEY, algorithm="HS256")
 
         return jsonify({
@@ -233,207 +189,112 @@ def login():
         }), 200
 
     except Exception as e:
-        return jsonify({
-            "error": f"Error en el servidor: {str(e)}"
-        }), 500
+        return jsonify({"error": f"Error en el servidor: {str(e)}"}), 500
         
 # =========================================================
-# ENDPOINT 4: CONSULTAR PEDIDOS
+# ENDPOINT 4: CONSULTAR PEDIDOS (FILTRADO SEGURO POR PRIVILEGIOS)
 # =========================================================
-
 @app.route("/api/pedidos", methods=["GET"])
 def obtener_pedidos():
-
     try:
-
-        # Verificar usuario
         usuario, error = obtener_usuario_desde_token()
-
         if error:
+            return jsonify({"error": error}), 401
 
-            return jsonify({
-                "error": error
-            }), 401
-
-        # Obtener pedidos desde Firebase
         respuesta = requests.get(
-
             f"{FIREBASE_DB_URL}/pedidos.json",
-
             timeout=15
-
         )
 
         if not respuesta.ok:
-
-            return jsonify({
-                "error": "No se pudieron obtener los pedidos"
-            }), 500
+            return jsonify({"error": "No se pudieron obtener los pedidos"}), 500
 
         datos = respuesta.json()
-
         if not datos:
-
-            return jsonify({
-                "pedidos": {}
-            }), 200
+            return jsonify({"pedidos": {}}), 200
 
         # =================================================
-        # MASTER
+        # CONFIGURACIÓN ROL: MASTER
         # =================================================
-
         if usuario["rol"] == "master":
-
             return jsonify({
-
                 "rol": "master",
-
                 "pedidos": datos
-
             }), 200
 
         # =================================================
-        # USUARIO NORMAL
+        # CONFIGURACIÓN ROL: USUARIO NORMAL
         # =================================================
-
         pedidos_usuario = {}
-
         for id_pedido, pedido in datos.items():
-
             if pedido.get("correoUsuario") == usuario["correo"]:
-
                 pedidos_usuario[id_pedido] = pedido
 
         return jsonify({
-
             "rol": "usuario",
-
             "pedidos": pedidos_usuario
-
         }), 200
 
     except Exception as e:
-
-        return jsonify({
-
-            "error": f"Error al obtener pedidos: {str(e)}"
-
-        }), 500
-
+        return jsonify({"error": f"Error al obtener pedidos: {str(e)}"}), 500
 
 # =========================================================
-# ENDPOINT 5: ELIMINAR PEDIDO
+# ENDPOINT 5: ELIMINAR PEDIDO (RESTRICCIÓN PERIMETRAL)
 # =========================================================
-
 @app.route("/api/pedidos/<id_pedido>", methods=["DELETE"])
 def eliminar_pedido(id_pedido):
-
     try:
-
-        # Verificar usuario
         usuario, error = obtener_usuario_desde_token()
-
         if error:
+            return jsonify({"error": error}), 401
 
-            return jsonify({
-                "error": error
-            }), 401
-
-        # Buscar pedido en Firebase
         respuesta = requests.get(
-
             f"{FIREBASE_DB_URL}/pedidos/{id_pedido}.json",
-
             timeout=15
-
         )
 
         if not respuesta.ok:
-
-            return jsonify({
-                "error": "No se pudo consultar el pedido"
-            }), 500
+            return jsonify({"error": "No se pudo consultar el pedido"}), 500
 
         pedido = respuesta.json()
-
         if not pedido:
-
-            return jsonify({
-                "error": "El pedido no existe"
-            }), 404
+            return jsonify({"error": "El pedido especificado no existe"}), 404
 
         # =================================================
-        # USUARIO NORMAL
+        # CONTROL DE ACCESO ROL: USUARIO NORMAL
         # =================================================
-
         if usuario["rol"] == "usuario":
-
-            correo_pedido = pedido.get(
-                "correoUsuario"
-            )
-
+            correo_pedido = pedido.get("correoUsuario")
             if correo_pedido != usuario["correo"]:
-
-                return jsonify({
-
-                    "error": "No tienes permiso para eliminar este pedido"
-
-                }), 403
+                return jsonify({"error": "No tienes permiso para eliminar este pedido"}), 403
 
         # =================================================
-        # MASTER
+        # CONTROL DE ACCESO ROL: MASTER (Pasa directo)
         # =================================================
-
-        # Si es MASTER puede continuar
-        # porque tiene permiso para eliminar cualquier pedido.
-
         respuesta_delete = requests.delete(
-
             f"{FIREBASE_DB_URL}/pedidos/{id_pedido}.json",
-
             timeout=15
-
         )
 
         if not respuesta_delete.ok:
+            return jsonify({"error": "No se pudo eliminar el registro de Firebase"}), 500
 
-            return jsonify({
-
-                "error": "No se pudo eliminar el pedido"
-
-            }), 500
-
-        return jsonify({
-
-            "message": "Pedido eliminado correctamente"
-
-        }), 200
+        return jsonify({"message": "Pedido eliminado correctamente"}), 200
 
     except Exception as e:
-
-        return jsonify({
-
-            "error": f"Error al eliminar pedido: {str(e)}"
-
-        }), 500
-
+        return jsonify({"error": f"Error al eliminar pedido: {str(e)}"}), 500
 
 # =========================================================
-# ENDPOINT DE PRUEBA
+# ENDPOINT DE PRUEBA / ENRUTAMIENTO BASE
 # =========================================================
-
 @app.route("/", methods=["GET"])
 def inicio():
-
     return jsonify({
-
         "mensaje": "API EcoVida funcionando correctamente",
-
         "sistema": "MongoDB + Firebase",
-
         "estado": "OK"
-
     })
+
 
 
 # =========================================================
@@ -446,60 +307,6 @@ if __name__ == "__main__":
         debug=True,
         port=5000
     )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     """# Generamos un Token JWT real firmado digitalmente válido por 2 horas

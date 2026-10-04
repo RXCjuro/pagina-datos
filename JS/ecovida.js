@@ -109,6 +109,9 @@ function vaciarCarrito() {
 // ==============================================================
 // GUARDAR PEDIDO INTEGRADO (FIREBASE + MICROSERVICIO EN RENDER)
 // ==============================================================
+// ==============================================================
+// GUARDAR PEDIDO INTEGRADO (FIREBASE + MICROSERVICIO EN RENDER)
+// ==============================================================
 function guardarPedido() {
     let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
 
@@ -124,7 +127,7 @@ function guardarPedido() {
 
     console.log("[MULTICLOUD] Consultando tarifas logísticas en el servidor remoto de Render...");
 
-    // Consulta real de costos multimedia/logísticos a tu servidor externo en la nube
+    // Consulta de costos logísticos a tu servidor externo en la nube de Render
     fetch(`${BASE_RENDER_URL}/api/delivery`)
         .then(function (resRender) {
             if (!resRender.ok) {
@@ -133,13 +136,13 @@ function guardarPedido() {
             return resRender.json();
         })
         .then(function (datosRender) {
-            let costoEnvio = datosRender.id ? 15.00 : 15.00; // Asignación de tasa calculada en la nube
+            let costoEnvio = datosRender.id ? 15.00 : 15.00;
             console.log("[MULTICLOUD] Conexión exitosa con Render. Costo de envío: S/ " + costoEnvio);
             procesarGuardadoFirebase(carrito, subtotal, costoEnvio);
         })
         .catch(function (errRender) {
             console.error("[MULTICLOUD ERROR] Render caído. Aplicando tolerancia a fallos:", errRender);
-            procesarGuardadoFirebase(carrito, subtotal, 10.00); // Resiliencia de contingencia local
+            procesarGuardadoFirebase(carrito, subtotal, 10.00);
         });
 }
 
@@ -149,15 +152,20 @@ function guardarPedido() {
 function procesarGuardadoFirebase(carrito, subtotal, costoEnvio) {
     let totalFinal = subtotal + costoEnvio;
 
+    // Extraemos de forma segura el perfil del usuario autenticado en la sesión
+    const datosUsuario = JSON.parse(localStorage.getItem("usuarioLogueado")) || null;
+    const correoActivo = datosUsuario ? datosUsuario.correo : "anonimo@ecovida.com";
+
     let pedido = {
         fecha: new Date().toISOString(),
+        correoUsuario: correoActivo, // Campo obligatorio para el filtrado seguro por roles en Python
         productos: carrito,
         subtotal: subtotal,
-        costoEnvioExterno: costoEnvio, // Evidencia del cálculo del segundo servidor cloud
+        costoEnvioExterno: costoEnvio,
         total: totalFinal
     };
 
-    console.log("Enviando pedido consolidado a Firebase:", pedido);
+    console.log("Enviando pedido consolidado a Firebase con propietario:", pedido);
 
     fetch("https://pagina-hosting-c6ec9-default-rtdb.firebaseio.com/pedidos.json", {
         method: "POST",
@@ -181,39 +189,59 @@ function procesarGuardadoFirebase(carrito, subtotal, costoEnvio) {
         });
 }
 
-// ===============================
-// MOSTRAR PEDIDOS DE FIREBASE
-// ===============================
+// ==============================================================
+// MOSTRAR PEDIDOS (CONSULTA CENTRALIZADA MEDIANTE BACKEND PYTHON Y JWT)
+// ==============================================================
 function mostrarPedidos() {
     let listaPedidos = document.getElementById("listaPedidos");
     if (!listaPedidos) return;
 
-    fetch("https://pagina-hosting-c6ec9-default-rtdb.firebaseio.com/pedidos.json")
+    // Recuperamos el token JWT emitido por tu login de Python y MongoDB
+    const tokenSesionReal = localStorage.getItem("authToken");
+
+    console.log("[MULTICLOUD] Solicitando historial de órdenes mediante canal autenticado...");
+
+    // Redirección perimetral: Consultamos al Endpoint seguro de Python en Render en lugar de Firebase directo
+    fetch(`${BASE_RENDER_URL}/api/pedidos`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${tokenSesionReal}` // Inyección obligatoria de la firma de seguridad
+        }
+    })
         .then(function (response) {
-            if (!response.ok) throw new Error("No se pudieron obtener los pedidos");
-            return response.json();
+            return response.json().then(function (data) {
+                if (!response.ok) throw new Error(data.error || "No autorizado para listar registros");
+                return data;
+            });
         })
         .then(function (data) {
             listaPedidos.innerHTML = "";
-            if (!data) {
-                listaPedidos.innerHTML = "<p>No hay pedidos registrados.</p>";
+
+            // Evaluamos la estructura del JSON devuelto por tu backend estructurado
+            const pedidos = data.pedidos;
+
+            if (!pedidos || Object.keys(pedidos).length === 0) {
+                listaPedidos.innerHTML = "<p>No hay pedidos registrados en su cuenta comercial.</p>";
                 return;
             }
 
-            Object.keys(data).forEach(function (idPedido) {
-                let pedido = data[idPedido];
+            // Renderizado dinámico en el DOM
+            Object.keys(pedidos).forEach(function (idPedido) {
+                let pedido = pedidos[idPedido];
                 let productosHTML = "";
 
                 pedido.productos.forEach(function (producto) {
                     productosHTML += `<li>${producto.nombre} - S/ ${Number(producto.precio).toFixed(2)}</li>`;
                 });
 
-                // Muestra dinámicamente si el registro proviene de Render Cloud
                 let costoEnvioHTML = pedido.costoEnvioExterno ? `S/ ${Number(pedido.costoEnvioExterno).toFixed(2)} (Render Cloud)` : "S/ 0.00";
 
+                // Metadata descriptiva que expone jerarquía de privilegios del token analizado
                 listaPedidos.innerHTML += `
                     <div class="pedido">
                         <h3>📦 Pedido: ${idPedido}</h3>
+                        <p><strong>Propietario del Registro:</strong> ${pedido.correoUsuario || "No asignado"}</p>
                         <p><strong>Fecha:</strong> ${new Date(pedido.fecha).toLocaleString()}</p>
                         <h4>Productos:</h4>
                         <ul>${productosHTML}</ul>
@@ -226,29 +254,48 @@ function mostrarPedidos() {
             });
         })
         .catch(function (error) {
-            console.error("Error:", error);
-            listaPedidos.innerHTML = "<p>❌ No se pudieron cargar los pedidos.</p>";
+            console.error("Error operacional de red en módulo Pedidos:", error);
+            listaPedidos.innerHTML = `<p>❌ Error de carga perimetral: ${error.message}</p>`;
         });
 }
 
-// ===============================
-// ELIMINAR PEDIDO DE FIREBASE
-// ===============================
+
+// ==============================================================
+// ELIMINAR PEDIDO (RESTRICCIÓN PERIMETRAL EN BACKEND PYTHON CON JWT)
+// ==============================================================
 function eliminarPedido(idPedido) {
     let confirmar = confirm("¿Seguro que deseas eliminar este pedido?");
     if (!confirmar) return;
 
-    fetch("https://pagina-hosting-c6ec9-default-rtdb.firebaseio.com/pedidos/" + idPedido + ".json", {
-        method: "DELETE"
+    // Recuperamos el token de sesión emitido por tu login de Python y MongoDB
+    const tokenSesionReal = localStorage.getItem("authToken");
+
+    console.log(`[MULTICLOUD] Transmitiendo solicitud de eliminación para la orden ${idPedido} a Render...`);
+
+    // Redirección segura: Apuntamos al microservicio de Python en lugar de Firebase directo
+    fetch(`${BASE_RENDER_URL}/api/pedidos/${idPedido}`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${tokenSesionReal}` // Firma criptográfica obligatoria para validación en Python
+        }
     })
         .then(function (response) {
-            if (!response.ok) throw new Error("No se pudo eliminar el pedido");
-            alert("✅ Pedido eliminado correctamente");
-            mostrarPedidos();
+            return response.json().then(function (data) {
+                if (!response.ok) {
+                    // Captura el mensaje descriptivo exacto devuelto por app.py (ej: "No tienes permiso...")
+                    throw new Error(data.error || "Fallo en la operación de eliminación");
+                }
+                return data;
+            });
+        })
+        .then(function (data) {
+            alert("✅ " + (data.message || "Pedido eliminado correctamente"));
+            mostrarPedidos(); // Recarga dinámicamente la lista actualizada mediante el backend
         })
         .catch(function (error) {
-            console.error("Error:", error);
-            alert("❌ No se pudo eliminar el pedido");
+            console.error("[MULTICLOUD ERROR] Operación de borrado rechazada:", error.message);
+            alert("❌ Error: " + error.message);
         });
 }
 
