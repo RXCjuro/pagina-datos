@@ -12,26 +12,19 @@ app = Flask(__name__)
 # CORS habilitado de manera global para permitir peticiones HTTP distribuidas
 CORS(app) 
 
-#============================================================
-# CONFIGURACION DE ENTORNO SEGURA
-#============================================================
-MONGO_URI = os.environ.get("MONGO_URI")
-SECRET_KEY = os.environ.get(
-    "SECRET_KEY",
-    "CAMBIAR_ESTA_LLAVE_EN_RENDER"
-)
+
+    # ============================================================
+# CONFIGURACION DE ENTORNO SEGURA (CORREGIDA)
+# ============================================================
+# Usamos os.getenv() que es el comando oficial compatible con Render
+MONGO_URI = os.getenv("MONGO_URI")
+SECRET_KEY = os.getenv("SECRET_KEY", "LLAVE_SECRETA_SUPER_SEGURA_ECOVIDA")
 
 # Correo que tendrá privilegios jerárquicos de MASTER
-MASTER_EMAIL = os.environ.get(
-    "MASTER_EMAIL",
-    "master@ecovida.com"
-)
+MASTER_EMAIL = os.getenv("MASTER_EMAIL", "master@ecovida.com")
 
 # URL base de la base de datos distribuida en Firebase
-FIREBASE_DB_URL = os.environ.get(
-    "FIREBASE_DB_URL",
-    "https://pagina-hosting-c6ec9-default-rtdb.firebaseio.com"
-)
+FIREBASE_DB_URL = os.getenv("https://pagina-hosting-c6ec9-default-rtdb.firebaseio.com")
 
 #========================================================
 # CONEXION CON MONGO ATLAS
