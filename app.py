@@ -6,9 +6,11 @@ from flask_cors import CORS
 from pymongo import MongoClient
 import bcrypt
 import jwt
-
 app = Flask(__name__)
-CORS(app) 
+
+# CORRECCIÓN REAL DE CORS: Habilita el soporte para recibir el token JWT en las cabeceras HTTP
+CORS(app, resources={r"/api/*": {"origins": "*", "allow_headers": ["Authorization", "Content-Type"]}})
+
 
 # RECONEXIÓN CON TUS CREDENCIALES ORIGINALES DE INICIO
 MONGO_URI = os.environ.get("MONGO_URI")
