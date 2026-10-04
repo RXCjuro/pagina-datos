@@ -39,7 +39,7 @@
 // 🌐 CONFIGURACIÓN ARQUITECTURA MULTICLOUD EN INTERNET (RENDER)
 // ==============================================================
 // Tu endpoint real y unificado desplegado en la nube de Render
-const BASE_RENDER_URL = "https://pagina-datos.onrender.com";
+const BASE_RENDER_URL = "https://ecovida-api-real.onrender.com/";
 
 
 // ===============================
@@ -297,31 +297,43 @@ function eliminarPedido(idPedido) {
 }
 
 // ==============================================================
-// 🔑 MICROSERVICIO DE AUTENTICACIÓN REAL (PYTHON + MONGODB)
+// 🔑 MICROSERVICIO DE AUTENTICACIÓN REAL (PYTHON + MONGODB ATLAS)
 // ==============================================================
 
+/**
+ * Procesa el inicio de sesión enviando los datos al servidor en internet de Render
+ */
 function iniciarSesionReal(email, password) {
-    let credenciales = { correo: email, contrasena: password };
+    let credenciales = {
+        correo: email,
+        contrasena: password
+    };
 
-    // Consumo del microservicio de seguridad alojado de manera externa en internet
+    // Consumimos el endpoint del backend real mapeado en internet
     fetch(`${BASE_RENDER_URL}/api/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json"
+        },
         body: JSON.stringify(credenciales)
     })
         .then(function (response) {
             return response.json().then(function (data) {
-                if (!response.ok) throw new Error(data.error || "Fallo en la autenticación");
+                if (!response.ok) {
+                    throw new Error(data.error || "Fallo en la autenticación");
+                }
                 return data;
             });
         })
         .then(function (data) {
-            console.log("[JWT] Token de sesión real recibido de Render Cloud:", data.token);
+            console.log("[JWT] Token de sesión recibido de Render:", data.token);
             alert("🔑 ¡Bienvenido, " + data.usuario.nombre + "!");
 
+            // Guardamos el token criptográfico y el objeto de identidad emitidos por Python
             localStorage.setItem("authToken", data.token);
             localStorage.setItem("usuarioLogueado", JSON.stringify(data.usuario));
 
+            // Redirección relativa que limpia la URL tanto en local como en Firebase Hosting
             const rutaActual = window.location.pathname;
             const nuevaRuta = rutaActual.replace("login.html", "index.html");
             window.location.href = nuevaRuta;
@@ -332,10 +344,15 @@ function iniciarSesionReal(email, password) {
         });
 }
 
+/**
+ * Captura el evento del formulario HTML de login.html
+ */
 function manejarFormularioLogin(evento) {
     evento.preventDefault();
+
     let email = document.getElementById("loginEmail").value;
     let contrasena = document.getElementById("loginPassword").value;
+
     iniciarSesionReal(email, contrasena);
 }
 

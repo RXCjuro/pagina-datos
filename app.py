@@ -1,7 +1,6 @@
 import os
 import datetime
 import requests
-
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from pymongo import MongoClient
@@ -9,33 +8,22 @@ import bcrypt
 import jwt
 
 app = Flask(__name__)
-# CORS habilitado de manera global para permitir peticiones HTTP distribuidas
 CORS(app) 
 
-
-  # ============================================================
-# CONFIGURACION DE ENTORNO EN PRODUCCIÓN (FORZADO DEFINITIVO)
-# ============================================================
-# Colocamos tu URI real de forma directa para evitar fallas de lectura de Render
-MONGO_URI = os.getenv("MONGO_URI")
-SECRET_KEY = os.getenv("SECRET_KEY", "LLAVE_SECRETA_SUPER_SEGURA_ECOVIDA")
-MASTER_EMAIL = os.getenv("MASTER_EMAIL", "master@ecovida.com")
-FIREBASE_DB_URL = os.getenv("https://pagina-hosting-c6ec9-default-rtdb.firebaseio.com")
+# RECONEXIÓN CON TUS CREDENCIALES ORIGINALES DE INICIO
+MONGO_URI = os.environ.get("MONGO_URI")
+SECRET_KEY = os.environ.get("SECRET_KEY", "LLAVE_SECRETA_SUPER_SEGURA_ECOVIDA")
+MASTER_EMAIL = os.environ.get("MASTER_EMAIL", "master@ecovida.com")
+FIREBASE_DB_URL = os.environ.get("FIREBASE_DB_URL", "https://pagina-hosting-c6ec9-default-rtdb.firebaseio.com/")
 
 
-#========================================================
-# CONEXION CON MONGO ATLAS
-#========================================================
 try:
-    if not MONGO_URI:
-        raise Exception("No se encontró la variable de entorno MONGO_URI")
     client = MongoClient(MONGO_URI)
     db = client['ecovida_db']           
     usuarios_col = db['usuarios']       
     print("✅ Conexión exitosa y en producción con MongoDB Atlas.")
 except Exception as e:
-    print(f"❌ Error crítico de conexión a MongoDB Atlas: {e}")
-    
+    print(f"❌ Error de conexión: {e}")
 
 # =========================================================
 # CONTROLADOR DE ROLES (MASTER VS USUARIO)
@@ -192,9 +180,10 @@ def obtener_pedidos():
             return jsonify({"error": error}), 401
 
         respuesta = requests.get(
-            f"{FIREBASE_DB_URL}/pedidos.json",
+            f"{FIREBASE_DB_URL}/pedidos/{id_pedido}.json",
             timeout=15
         )
+
 
         if not respuesta.ok:
             return jsonify({"error": "No se pudieron obtener los pedidos"}), 500
