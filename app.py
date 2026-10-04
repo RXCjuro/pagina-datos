@@ -44,8 +44,13 @@ def obtener_usuario_desde_token():
     if not authorization.startswith("Bearer "):
         return None, "Formato de token inválido"
 
-    token_lista= authorization.split(" ")[1]
-    token_puro = token_lista[1] 
+    token_lista = authorization.split(" ")
+
+    if len(token_lista)<2:
+        return None, "token mal estructurado"
+
+    token_puro = token_lista[1]
+
     try:
         datos_token = jwt.decode(
             token_puro,
