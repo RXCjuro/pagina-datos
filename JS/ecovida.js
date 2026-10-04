@@ -109,9 +109,6 @@ function vaciarCarrito() {
 // ==============================================================
 // GUARDAR PEDIDO INTEGRADO (FIREBASE + MICROSERVICIO EN RENDER)
 // ==============================================================
-// ==============================================================
-// GUARDAR PEDIDO INTEGRADO (FIREBASE + MICROSERVICIO EN RENDER)
-// ==============================================================
 function guardarPedido() {
     let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
 
