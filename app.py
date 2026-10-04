@@ -17,14 +17,10 @@ CORS(app)
 # CONFIGURACION DE ENTORNO EN PRODUCCIÓN (FORZADO DEFINITIVO)
 # ============================================================
 # Colocamos tu URI real de forma directa para evitar fallas de lectura de Render
-MONGO_URI = "mongodb+srv://gluuglee_db_user:Ecovida2026@cluster0.thne8oy.mongodb.net/?appName=Cluster0"
-SECRET_KEY = "LLAVE_SECRETA_SUPER_SEGURA_ECOVIDA"
-
-# Correo que tendrá privilegios jerárquicos de MASTER
-MASTER_EMAIL = "master@ecovida.com"
-
-# URL base de la base de datos distribuida en Firebase
-FIREBASE_DB_URL = "https://pagina-hosting-c6ec9-default-rtdb.firebaseio.com"
+MONGO_URI = os.getenv("MONGO_URI")
+SECRET_KEY = os.getenv("SECRET_KEY", "LLAVE_SECRETA_SUPER_SEGURA_ECOVIDA")
+MASTER_EMAIL = os.getenv("MASTER_EMAIL", "master@ecovida.com")
+FIREBASE_DB_URL = os.getenv("https://pagina-hosting-c6ec9-default-rtdb.firebaseio.com")
 
 
 #========================================================
