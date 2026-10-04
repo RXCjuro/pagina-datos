@@ -193,17 +193,14 @@ function mostrarPedidos() {
     let listaPedidos = document.getElementById("listaPedidos");
     if (!listaPedidos) return;
 
-    // Recuperamos el token JWT emitido por tu login de Python y MongoDB
     const tokenSesionReal = localStorage.getItem("authToken");
-
     console.log("[MULTICLOUD] Solicitando historial de órdenes mediante canal autenticado...");
 
-    // Redirección perimetral: Consultamos al Endpoint seguro de Python en Render en lugar de Firebase directo
     fetch(`${BASE_RENDER_URL}/api/pedidos`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${tokenSesionReal}` // Inyección obligatoria de la firma de seguridad
+            "Authorization": `Bearer ${tokenSesionReal}`
         }
     })
         .then(function (response) {
@@ -215,7 +212,6 @@ function mostrarPedidos() {
         .then(function (data) {
             listaPedidos.innerHTML = "";
 
-            // Evaluamos la estructura del JSON devuelto por tu backend estructurado
             const pedidos = data.pedidos;
 
             if (!pedidos || Object.keys(pedidos).length === 0) {
@@ -223,23 +219,26 @@ function mostrarPedidos() {
                 return;
             }
 
-            // Renderizado dinámico en el DOM
             Object.keys(pedidos).forEach(function (idPedido) {
                 let pedido = pedidos[idPedido];
                 let productosHTML = "";
 
-                pedido.productos.forEach(function (producto) {
-                    productosHTML += `<li>${producto.nombre} - S/ ${Number(producto.precio).toFixed(2)}</li>`;
-                });
+                // CORRECCIÓN DE ALTA PRECISIÓN: Validamos que existan productos y sea un arreglo antes de recorrerlo
+                if (pedido.productos && Array.isArray(pedido.productos)) {
+                    pedido.productos.forEach(function (producto) {
+                        productosHTML += `<li>${producto.nombre} - S/ ${Number(producto.precio).toFixed(2)}</li>`;
+                    });
+                } else {
+                    productosHTML = "<li>Sin productos registrados</li>";
+                }
 
                 let costoEnvioHTML = pedido.costoEnvioExterno ? `S/ ${Number(pedido.costoEnvioExterno).toFixed(2)} (Render Cloud)` : "S/ 0.00";
 
-                // Metadata descriptiva que expone jerarquía de privilegios del token analizado
                 listaPedidos.innerHTML += `
                     <div class="pedido">
                         <h3>📦 Pedido: ${idPedido}</h3>
                         <p><strong>Propietario del Registro:</strong> ${pedido.correoUsuario || "No asignado"}</p>
-                        <p><strong>Fecha:</strong> ${new Date(pedido.fecha).toLocaleString()}</p>
+                        <p><strong>Fecha:</strong> ${pedido.fecha ? new Date(pedido.fecha).toLocaleString() : "No especificada"}</p>
                         <h4>Productos:</h4>
                         <ul>${productosHTML}</ul>
                         <p><strong>Costo de Envío:</strong> ${costoEnvioHTML}</p>
@@ -255,6 +254,7 @@ function mostrarPedidos() {
             listaPedidos.innerHTML = `<p>❌ Error de carga perimetral: ${error.message}</p>`;
         });
 }
+
 
 
 // ==============================================================
