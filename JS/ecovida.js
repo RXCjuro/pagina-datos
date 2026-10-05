@@ -195,7 +195,7 @@ function mostrarPedidos() {
     console.log("[SISTEMA] Conectando directamente a la base de datos del grupo...");
 
     // Tu enlace real de Realtime Database con terminación .json obligatoria
-    fetch("https://pagina-hosting-c6ec9-default-rtdb.firebaseio.com")
+    fetch("https://firebaseio.com")
         .then(function (response) {
             if (!response.ok) throw new Error("Error en servidor base: " + response.status);
             return response.json();
