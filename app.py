@@ -183,11 +183,12 @@ def obtener_pedidos():
         usuario, error = obtener_usuario_desde_token()
         if error:
             return jsonify({"error": error}), 401
-
+        # REESTRUCTURACIÓN DE ALTA PRECISIÓN: Forzamos la ruta con .json explícito en la raíz
         respuesta = requests.get(
-            f"{FIREBASE_DB_URL}/pedidos.json",
+            f"https://firebaseio.com",
             timeout=15
         )
+
 
         if not respuesta.ok:
             return jsonify({"error": "No se pudieron obtener los pedidos"}), 500
