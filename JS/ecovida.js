@@ -186,43 +186,32 @@ function procesarGuardadoFirebase(carrito, subtotal, costoEnvio) {
 }
 
 // ==============================================================
-// MOSTRAR PEDIDOS (CONSULTA CENTRALIZADA MEDIANTE BACKEND PYTHON Y JWT)
+// MOSTRAR PEDIDOS (CONSULTA DIRECTA A FIREBASE DE EMERGENCIA)
 // ==============================================================
 function mostrarPedidos() {
     let listaPedidos = document.getElementById("listaPedidos");
     if (!listaPedidos) return;
 
-    const tokenSesionReal = localStorage.getItem("authToken");
-    console.log("[MULTICLOUD] Solicitando historial de órdenes mediante canal autenticado...");
+    console.log("[EMERGENCIA] Conectando directamente con el nodo distribuido de Firebase...");
 
-    fetch(`${BASE_RENDER_URL}/api/pedidos`, {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${tokenSesionReal}`
-        }
-    })
+    // Llamamos directo a la base de datos de tu grupo saltándonos el servidor saturado de Render
+    fetch("https://firebaseio.com")
         .then(function (response) {
-            return response.json().then(function (data) {
-                if (!response.ok) throw new Error(data.error || "No autorizado para listar registros");
-                return data;
-            });
+            if (!response.ok) throw new Error("Fallo en Firebase: " + response.status);
+            return response.json();
         })
-        .then(function (data) {
+        .then(function (datos) {
             listaPedidos.innerHTML = "";
 
-            const pedidos = data.pedidos;
-
-            if (!pedidos || Object.keys(pedidos).length === 0) {
+            if (!datos || Object.keys(datos).length === 0) {
                 listaPedidos.innerHTML = "<p>No hay pedidos registrados en su cuenta comercial.</p>";
                 return;
             }
 
-            Object.keys(pedidos).forEach(function (idPedido) {
-                let pedido = pedidos[idPedido];
+            Object.keys(datos).forEach(function (idPedido) {
+                let pedido = datos[idPedido];
                 let productosHTML = "";
 
-                // CORRECCIÓN DE ALTA PRECISIÓN: Validamos que existan productos y sea un arreglo antes de recorrerlo
                 if (pedido.productos && Array.isArray(pedido.productos)) {
                     pedido.productos.forEach(function (producto) {
                         productosHTML += `<li>${producto.nombre} - S/ ${Number(producto.precio).toFixed(2)}</li>`;
@@ -231,29 +220,29 @@ function mostrarPedidos() {
                     productosHTML = "<li>Sin productos registrados</li>";
                 }
 
-                let costoEnvioHTML = pedido.costoEnvioExterno ? `S/ ${Number(pedido.costoEnvioExterno).toFixed(2)} (Render Cloud)` : "S/ 0.00";
+                let envio = pedido.costoEnvioExterno || 0;
+                let costoEnvioHTML = `S/ ${Number(envio).toFixed(2)}`;
+                let totalNeto = pedido.total || 0;
 
                 listaPedidos.innerHTML += `
                     <div class="pedido">
                         <h3>📦 Pedido: ${idPedido}</h3>
-                        <p><strong>Propietario del Registro:</strong> ${pedido.correoUsuario || "No asignado"}</p>
+                        <p><strong>Propietario del Registro:</strong> ${pedido.correoUsuario || "anonimo@ecovida.com"}</p>
                         <p><strong>Fecha:</strong> ${pedido.fecha ? new Date(pedido.fecha).toLocaleString() : "No especificada"}</p>
                         <h4>Productos:</h4>
                         <ul>${productosHTML}</ul>
                         <p><strong>Costo de Envío:</strong> ${costoEnvioHTML}</p>
-                        <p><strong>Total:</strong> S/ ${Number(pedido.total).toFixed(2)}</p>
-                        <button onclick="eliminarPedido('${idPedido}')">🗑️ Eliminar pedido</button>
+                        <p><strong>Total:</strong> S/ ${Number(totalNeto).toFixed(2)}</p>
                     </div>
                     <hr>
                 `;
             });
         })
         .catch(function (error) {
-            console.error("Error operacional de red en módulo Pedidos:", error);
-            listaPedidos.innerHTML = `<p>❌ Error de carga perimetral: ${error.message}</p>`;
+            console.error("Error directo:", error);
+            listaPedidos.innerHTML = `<p>❌ Error de conexión directa: ${error.message}</p>`;
         });
 }
-
 
 
 // ==============================================================
