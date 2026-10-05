@@ -174,10 +174,11 @@ def login():
         return jsonify({"error": f"Error en el servidor: {str(e)}"}), 500
         
 # =========================================================
-# ENDPOINT 4: CONSULTAR PEDIDOS (RUTA RAÍZ ORIGINAL)
+# ENDPOINT 4: CONSULTAR PEDIDOS (SOLUCIÓN DEFINITIVA DE PREFLIGHT)
 # =========================================================
 @app.route("/api/pedidos", methods=["GET", "OPTIONS"])
 def obtener_pedidos():
+    # INTERCEPCIÓN PERIMETRAL: Respondemos con éxito al navegador antes de validar el token
     if request.method == "OPTIONS":
         respuesta_cors = jsonify({"status": "ok"})
         respuesta_cors.headers.add("Access-Control-Allow-Origin", "*")
@@ -186,18 +187,18 @@ def obtener_pedidos():
         return respuesta_cors, 200
 
     try:
+        # Una vez aprobado el preflight, el método GET sí traerá el token y pasará limpio aquí
         usuario, error = obtener_usuario_desde_token()
         if error:
             return jsonify({"error": error}), 401
 
-        # Mantenemos la lectura desde el Firebase Realtime Database original de tu grupo
         respuesta = requests.get(
             f"{FIREBASE_DB_URL}/pedidos.json",
             timeout=15
         )
 
         if not respuesta.ok:
-            return jsonify({"error": "No se pudieron obtener los pedidos de Firebase"}), 500
+            return jsonify({"error": "No se pudieron obtener los pedidos"}), 500
 
         datos = respuesta.json()
         if not datos:
@@ -213,7 +214,6 @@ def obtener_pedidos():
         # CONFIGURACIÓN ROL: USUARIO NORMAL
         pedidos_usuario = {}
         for id_pedido, pedido in datos.items():
-            # Validamos de forma matemática que el registro tenga correo para que no colapse Python
             if pedido and pedido.get("correoUsuario") == usuario["correo"]:
                 pedidos_usuario[id_pedido] = pedido
 
@@ -223,7 +223,8 @@ def obtener_pedidos():
         }), 200
 
     except Exception as e:
-        return jsonify({"error": f"Error de red distribuida: {str(e)}"}), 500
+        return jsonify({"error": f"Error al obtener pedidos: {str(e)}"}), 500 
+
 
 
 # =========================================================
