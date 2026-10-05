@@ -48,7 +48,7 @@ def obtener_usuario_desde_token():
 
    # CORRECCIÓN DE ALTA PRECISIÓN: Extraemos estrictamente la posición 1 (el string del token)
     token_lista = authorization.split(" ")
-    token_puro = token_lista
+    token_puro = token_lista[1]
 
     try:
         datos_token = jwt.decode(
