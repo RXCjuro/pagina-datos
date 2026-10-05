@@ -9,7 +9,7 @@ import jwt
 app = Flask(__name__)
 
 # CORRECCIÓN REAL DE CORS: Habilita el soporte para recibir el token JWT en las cabeceras HTTP
-CORS(app, resources={r"/api/*": {"origins": "*", "allow_headers": ["Authorization", "Content-Type"]}})
+CORS(app, resources={"/api/*": {"origins": "*", "allow_headers": ["Authorization", "Content-Type"], "methods": ["GET", "POST", "OPTIONS"]}})
 
 
 # RECONEXIÓN CON TUS CREDENCIALES ORIGINALES DE INICIO
