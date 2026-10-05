@@ -174,11 +174,10 @@ def login():
         return jsonify({"error": f"Error en el servidor: {str(e)}"}), 500
         
 # =========================================================
-# ENDPOINT 4: CONSULTAR PEDIDOS (SOLUCIÓN DEFINITIVA CORS Y DATA)
+# ENDPOINT 4: CONSULTAR PEDIDOS (RUTA RAÍZ ORIGINAL)
 # =========================================================
 @app.route("/api/pedidos", methods=["GET", "OPTIONS"])
 def obtener_pedidos():
-    # Soporte explícito para solicitudes Preflight CORS del navegador
     if request.method == "OPTIONS":
         respuesta_cors = jsonify({"status": "ok"})
         respuesta_cors.headers.add("Access-Control-Allow-Origin", "*")
@@ -191,36 +190,31 @@ def obtener_pedidos():
         if error:
             return jsonify({"error": error}), 401
 
+        # Mantenemos la lectura desde el Firebase Realtime Database original de tu grupo
         respuesta = requests.get(
             f"{FIREBASE_DB_URL}/pedidos.json",
             timeout=15
         )
 
         if not respuesta.ok:
-            return jsonify({"error": "No se pudieron obtener los pedidos"}), 500
+            return jsonify({"error": "No se pudieron obtener los pedidos de Firebase"}), 500
 
         datos = respuesta.json()
         if not datos:
             return jsonify({"pedidos": {}}), 200
 
-        # =================================================
         # CONFIGURACIÓN ROL: MASTER
-        # =================================================
         if usuario["rol"] == "master":
             return jsonify({
                 "rol": "master",
                 "pedidos": datos
             }), 200
 
-        # =================================================
-        # CONFIGURACIÓN ROL: USUARIO NORMAL (BLINDADO)
-        # =================================================
+        # CONFIGURACIÓN ROL: USUARIO NORMAL
         pedidos_usuario = {}
         for id_pedido, pedido in datos.items():
-            # Si el pedido no tiene correo asignado, colocamos un string vacío para evitar que se caiga Python
-            correo_pedido = pedido.get("correoUsuario") if pedido.get("correoUsuario") else ""
-            
-            if correo_pedido == usuario["correo"]:
+            # Validamos de forma matemática que el registro tenga correo para que no colapse Python
+            if pedido and pedido.get("correoUsuario") == usuario["correo"]:
                 pedidos_usuario[id_pedido] = pedido
 
         return jsonify({
@@ -229,7 +223,7 @@ def obtener_pedidos():
         }), 200
 
     except Exception as e:
-        return jsonify({"error": f"Error interno: {str(e)}"}), 500
+        return jsonify({"error": f"Error de red distribuida: {str(e)}"}), 500
 
 
 # =========================================================
