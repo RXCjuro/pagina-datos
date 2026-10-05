@@ -186,25 +186,25 @@ function procesarGuardadoFirebase(carrito, subtotal, costoEnvio) {
 }
 
 // ==============================================================
-// MOSTRAR PEDIDOS (CONSULTA DIRECTA A FIREBASE DE EMERGENCIA)
+// MOSTRAR PEDIDOS (VERSIÓN ORIGINAL SIN FILTRADO DE ROLES)
 // ==============================================================
 function mostrarPedidos() {
     let listaPedidos = document.getElementById("listaPedidos");
     if (!listaPedidos) return;
 
-    console.log("[EMERGENCIA] Conectando directamente con el nodo distribuido de Firebase...");
+    console.log("[SISTEMA] Conectando directamente a la base de datos del grupo...");
 
-    // Llamamos directo a la base de datos de tu grupo saltándonos el servidor saturado de Render
-    fetch("https://firebaseio.com")
+    // Tu enlace real de Realtime Database con terminación .json obligatoria
+    fetch("https://pagina-hosting-c6ec9-default-rtdb.firebaseio.com")
         .then(function (response) {
-            if (!response.ok) throw new Error("Fallo en Firebase: " + response.status);
+            if (!response.ok) throw new Error("Error en servidor base: " + response.status);
             return response.json();
         })
         .then(function (datos) {
             listaPedidos.innerHTML = "";
 
             if (!datos || Object.keys(datos).length === 0) {
-                listaPedidos.innerHTML = "<p>No hay pedidos registrados en su cuenta comercial.</p>";
+                listaPedidos.innerHTML = "<p>No hay pedidos registrados en el sistema comercial.</p>";
                 return;
             }
 
@@ -221,17 +221,16 @@ function mostrarPedidos() {
                 }
 
                 let envio = pedido.costoEnvioExterno || 0;
-                let costoEnvioHTML = `S/ ${Number(envio).toFixed(2)}`;
                 let totalNeto = pedido.total || 0;
 
                 listaPedidos.innerHTML += `
                     <div class="pedido">
                         <h3>📦 Pedido: ${idPedido}</h3>
-                        <p><strong>Propietario del Registro:</strong> ${pedido.correoUsuario || "anonimo@ecovida.com"}</p>
+                        <p><strong>Propietario:</strong> ${pedido.correoUsuario || "No asignado"}</p>
                         <p><strong>Fecha:</strong> ${pedido.fecha ? new Date(pedido.fecha).toLocaleString() : "No especificada"}</p>
                         <h4>Productos:</h4>
                         <ul>${productosHTML}</ul>
-                        <p><strong>Costo de Envío:</strong> ${costoEnvioHTML}</p>
+                        <p><strong>Costo de Envío:</strong> S/ ${Number(envio).toFixed(2)}</p>
                         <p><strong>Total:</strong> S/ ${Number(totalNeto).toFixed(2)}</p>
                     </div>
                     <hr>
@@ -240,7 +239,7 @@ function mostrarPedidos() {
         })
         .catch(function (error) {
             console.error("Error directo:", error);
-            listaPedidos.innerHTML = `<p>❌ Error de conexión directa: ${error.message}</p>`;
+            listaPedidos.innerHTML = `<p>❌ Error de conexión: ${error.message}</p>`;
         });
 }
 
