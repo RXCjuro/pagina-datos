@@ -173,17 +173,24 @@ def login():
     except Exception as e:
         return jsonify({"error": f"Error en el servidor: {str(e)}"}), 500
         
-## =========================================================
-# ENDPOINT 4: CONSULTAR PEDIDOS (FILTRADO SEGURO POR PRIVILEGIOS)
 # =========================================================
-@app.route("/api/pedidos", methods=["GET"])
+# ENDPOINT 4: CONSULTAR PEDIDOS (SOLUCIÓN DEFINITIVA CORS Y DATA)
+# =========================================================
+@app.route("/api/pedidos", methods=["GET", "OPTIONS"])
 def obtener_pedidos():
+    # Soporte explícito para solicitudes Preflight CORS del navegador
+    if request.method == "OPTIONS":
+        respuesta_cors = jsonify({"status": "ok"})
+        respuesta_cors.headers.add("Access-Control-Allow-Origin", "*")
+        respuesta_cors.headers.add("Access-Control-Allow-Headers", "Authorization, Content-Type")
+        respuesta_cors.headers.add("Access-Control-Allow-Methods", "GET, OPTIONS")
+        return respuesta_cors, 200
+
     try:
         usuario, error = obtener_usuario_desde_token()
         if error:
             return jsonify({"error": error}), 401
 
-        # CORRECCIÓN DE ALTA PRECISIÓN: Consultamos la raíz de pedidos completa sin la variable inexistente id_pedido
         respuesta = requests.get(
             f"{FIREBASE_DB_URL}/pedidos.json",
             timeout=15
@@ -206,11 +213,14 @@ def obtener_pedidos():
             }), 200
 
         # =================================================
-        # CONFIGURACIÓN ROL: USUARIO NORMAL
+        # CONFIGURACIÓN ROL: USUARIO NORMAL (BLINDADO)
         # =================================================
         pedidos_usuario = {}
         for id_pedido, pedido in datos.items():
-            if pedido.get("correoUsuario") == usuario["correo"]:
+            # Si el pedido no tiene correo asignado, colocamos un string vacío para evitar que se caiga Python
+            correo_pedido = pedido.get("correoUsuario") if pedido.get("correoUsuario") else ""
+            
+            if correo_pedido == usuario["correo"]:
                 pedidos_usuario[id_pedido] = pedido
 
         return jsonify({
@@ -219,7 +229,7 @@ def obtener_pedidos():
         }), 200
 
     except Exception as e:
-        return jsonify({"error": f"Error al obtener pedidos: {str(e)}"}), 500 
+        return jsonify({"error": f"Error interno: {str(e)}"}), 500
 
 
 # =========================================================
