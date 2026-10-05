@@ -174,20 +174,12 @@ def login():
         return jsonify({"error": f"Error en el servidor: {str(e)}"}), 500
         
 # =========================================================
-# ENDPOINT 4: CONSULTAR PEDIDOS (SOLUCIÓN DEFINITIVA DE PREFLIGHT)
+# ENDPOINT 4: CONSULTAR PEDIDOS (SOLUCIÓN DEFINITIVA CORS NATAL)
 # =========================================================
-@app.route("/api/pedidos", methods=["GET", "OPTIONS"])
+@app.route("/api/pedidos", methods=["GET"])
 def obtener_pedidos():
-    # INTERCEPCIÓN PERIMETRAL: Respondemos con éxito al navegador antes de validar el token
-    if request.method == "OPTIONS":
-        respuesta_cors = jsonify({"status": "ok"})
-        respuesta_cors.headers.add("Access-Control-Allow-Origin", "*")
-        respuesta_cors.headers.add("Access-Control-Allow-Headers", "Authorization, Content-Type")
-        respuesta_cors.headers.add("Access-Control-Allow-Methods", "GET, OPTIONS")
-        return respuesta_cors, 200
-
     try:
-        # Una vez aprobado el preflight, el método GET sí traerá el token y pasará limpio aquí
+        # La extensión global CORS manejará el Preflight automáticamente en esta ruta
         usuario, error = obtener_usuario_desde_token()
         if error:
             return jsonify({"error": error}), 401
@@ -223,7 +215,7 @@ def obtener_pedidos():
         }), 200
 
     except Exception as e:
-        return jsonify({"error": f"Error al obtener pedidos: {str(e)}"}), 500 
+        return jsonify({"error": f"Error al obtener pedidos: {str(e)}"}), 500
 
 
 
