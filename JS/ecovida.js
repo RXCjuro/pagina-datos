@@ -1,4 +1,9 @@
 // ==============================================================
+// 🌐 CONFIGURACIÓN ARQUITECTURA MULTICLOUD EN INTERNET (RENDER)
+// ==============================================================
+// Tu endpoint real y unificado desplegado en la nube de Render
+const BASE_RENDER_URL = "https://ecovida-api-real.onrender.com";
+// ==============================================================
 // 🔐 MIDDLEWARE DE SEGURIDAD PERIMETRAL (BLOQUEO ABSOLUTO)
 // ==============================================================
 (function verificarAccesoObligatorio() {
@@ -34,12 +39,6 @@
         }
     });
 })();
-
-// ==============================================================
-// 🌐 CONFIGURACIÓN ARQUITECTURA MULTICLOUD EN INTERNET (RENDER)
-// ==============================================================
-// Tu endpoint real y unificado desplegado en la nube de Render
-const BASE_RENDER_URL = "https://ecovida-api-real.onrender.com";
 
 
 // ===============================
