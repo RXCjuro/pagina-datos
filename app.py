@@ -173,7 +173,7 @@ def login():
     except Exception as e:
         return jsonify({"error": f"Error en el servidor: {str(e)}"}), 500
         
-# =========================================================
+## =========================================================
 # ENDPOINT 4: CONSULTAR PEDIDOS (FILTRADO SEGURO POR PRIVILEGIOS)
 # =========================================================
 @app.route("/api/pedidos", methods=["GET"])
@@ -183,11 +183,11 @@ def obtener_pedidos():
         if error:
             return jsonify({"error": error}), 401
 
+        # CORRECCIÓN DE ALTA PRECISIÓN: Consultamos la raíz de pedidos completa sin la variable inexistente id_pedido
         respuesta = requests.get(
-            f"{FIREBASE_DB_URL}/pedidos/{id_pedido}.json",
+            f"{FIREBASE_DB_URL}/pedidos.json",
             timeout=15
         )
-
 
         if not respuesta.ok:
             return jsonify({"error": "No se pudieron obtener los pedidos"}), 500
@@ -219,7 +219,8 @@ def obtener_pedidos():
         }), 200
 
     except Exception as e:
-        return jsonify({"error": f"Error al obtener pedidos: {str(e)}"}), 500
+        return jsonify({"error": f"Error al obtener pedidos: {str(e)}"}), 500 
+
 
 # =========================================================
 # ENDPOINT 5: ELIMINAR PEDIDO (RESTRICCIÓN PERIMETRAL)
