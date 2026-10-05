@@ -174,41 +174,43 @@ def login():
         return jsonify({"error": f"Error en el servidor: {str(e)}"}), 500
         
 # =========================================================
-# ENDPOINT 4: CONSULTAR PEDIDOS (SOLUCIÓN DEFINITIVA CORS NATAL)
+# ENDPOINT 4: CONSULTAR PEDIDOS (CONEXIÓN SEGURA A MONGODB ATLAS)
 # =========================================================
-@app.route("/api/pedidos", methods=["GET"])
+@app.route("/api/pedidos", methods=["GET", "OPTIONS"])
 def obtener_pedidos():
+    if request.method == "OPTIONS":
+        respuesta_cors = jsonify({"status": "ok"})
+        respuesta_cors.headers.add("Access-Control-Allow-Origin", "*")
+        respuesta_cors.headers.add("Access-Control-Allow-Headers", "Authorization, Content-Type")
+        respuesta_cors.headers.add("Access-Control-Allow-Methods", "GET, OPTIONS")
+        return respuesta_cors, 200
+
     try:
-        # La extensión global CORS manejará el Preflight automáticamente en esta ruta
         usuario, error = obtener_usuario_desde_token()
         if error:
             return jsonify({"error": error}), 401
-        # REESTRUCTURACIÓN DE ALTA PRECISIÓN: Forzamos la ruta con .json explícito en la raíz
-        respuesta = requests.get(
-            f"https://firebaseio.com",
-            timeout=15
-        )
 
-
-        if not respuesta.ok:
-            return jsonify({"error": "No se pudieron obtener los pedidos"}), 500
-
-        datos = respuesta.json()
-        if not datos:
-            return jsonify({"pedidos": {}}), 200
-
+        # Mapeamos la colección 'pedidos' directamente en tu base de datos NoSQL activa
+        pedidos_col = db['pedidos']
+        
+        # =================================================
         # CONFIGURACIÓN ROL: MASTER
+        # =================================================
         if usuario["rol"] == "master":
+            # Extraemos todos los registros guardados del sistema
+            todos_pedidos = list(pedidos_col.find({}, {"_id": 0}))
+            pedidos_dict = {f"PEDIDO_{i}": p for i, p in enumerate(todos_pedidos)}
             return jsonify({
                 "rol": "master",
-                "pedidos": datos
+                "pedidos": pedidos_dict
             }), 200
 
+        # =================================================
         # CONFIGURACIÓN ROL: USUARIO NORMAL
-        pedidos_usuario = {}
-        for id_pedido, pedido in datos.items():
-            if pedido and pedido.get("correoUsuario") == usuario["correo"]:
-                pedidos_usuario[id_pedido] = pedido
+        # =================================================
+        # Filtramos de forma matemática estricta por el correo del usuario en sesión
+        pedidos_db = list(pedidos_col.find({"correoUsuario": usuario["correo"]}, {"_id": 0}))
+        pedidos_usuario = {f"PEDIDO_{i}": p for i, p in enumerate(pedidos_db)}
 
         return jsonify({
             "rol": "usuario",
@@ -216,7 +218,7 @@ def obtener_pedidos():
         }), 200
 
     except Exception as e:
-        return jsonify({"error": f"Error al obtener pedidos: {str(e)}"}), 500
+        return jsonify({"error": f"Error de comunicación en Atlas: {str(e)}"}), 500
 
 
 
