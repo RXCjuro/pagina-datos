@@ -189,7 +189,7 @@ function procesarGuardadoFirebase(carrito, subtotal, costoEnvio) {
 // MOSTRAR PEDIDOS
 // Consulta segura mediante Python + JWT + Firebase
 // ==============================================================
-
+console.log("🔥 ECOVIDA.JS NUEVO CARGADO");
 function mostrarPedidos() {
 
     const listaPedidos = document.getElementById("listaPedidos");
