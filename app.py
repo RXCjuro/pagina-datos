@@ -2,7 +2,7 @@ import os
 import datetime
 import requests
 from flask import Flask, request, jsonify
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 from pymongo import MongoClient
 import bcrypt
 import jwt
@@ -11,23 +11,10 @@ app = Flask(__name__)
 # CORRECCIÓN REAL DE CORS: Habilita el soporte para recibir el token JWT en las cabeceras HTTP
 CORS(
     app,
-    resources={
-        r"/api/*": {
-            "origins": "*",
-            "allow_headers": [
-                "Authorization",
-                "Content-Type"
-            ],
-            "methods": [
-                "GET",
-                "POST",
-                "DELETE",
-                "OPTIONS"
-            ]
-        }
-    }
+    origins="*",
+    allow_headers=["Authorization", "Content-Type"],
+    methods=["GET", "POST", "DELETE", "OPTIONS"]
 )
-
 # RECONEXIÓN CON TUS CREDENCIALES ORIGINALES DE INICIO
 MONGO_URI = os.environ.get("MONGO_URI")
 SECRET_KEY = os.environ.get("SECRET_KEY", "LLAVE_SECRETA_SUPER_SEGURA_ECOVIDA")
@@ -194,16 +181,17 @@ def login():
 # FIREBASE REALTIME DATABASE + CONTROL POR ROL
 # =========================================================
 @app.route("/api/pedidos", methods=["GET", "OPTIONS"])
+@cross_origin(
+    origins="*",
+    allow_headers=["Authorization", "Content-Type"],
+    methods=["GET", "OPTIONS"]
+)
 def obtener_pedidos():
 
     if request.method == "OPTIONS":
-        return "", 204
+        return jsonify({"status": "ok"}), 200
 
     try:
-
-        # ==========================================
-        # 2. VALIDAR JWT
-        # ==========================================
 
         usuario, error = obtener_usuario_desde_token()
 
@@ -216,6 +204,7 @@ def obtener_pedidos():
             f"[PEDIDOS] Usuario: {usuario['correo']} | "
             f"Rol: {usuario['rol']}"
         )
+
 
         # ==========================================
         # 3. CONSULTAR FIREBASE
