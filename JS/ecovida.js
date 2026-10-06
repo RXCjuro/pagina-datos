@@ -186,103 +186,305 @@ function procesarGuardadoFirebase(carrito, subtotal, costoEnvio) {
 }
 
 // ==============================================================
-// MOSTRAR PEDIDOS (VERSIÓN ORIGINAL SIN FILTRADO DE ROLES)
+// MOSTRAR PEDIDOS
+// Consulta segura mediante Python + JWT + Firebase
 // ==============================================================
+
 function mostrarPedidos() {
-    let listaPedidos = document.getElementById("listaPedidos");
-    if (!listaPedidos) return;
 
-    console.log("[SISTEMA] Conectando directamente a la base de datos del grupo...");
+    const listaPedidos = document.getElementById("listaPedidos");
 
-    // Tu enlace real de Realtime Database con terminación .json obligatoria
-    fetch("https://firebaseio.com")
+    if (!listaPedidos) {
+        return;
+    }
+
+    // ==========================================
+    // 1. OBTENER SESIÓN
+    // ==========================================
+
+    const tokenSesionReal = localStorage.getItem("authToken");
+
+    const datosUsuario = JSON.parse(
+        localStorage.getItem("usuarioLogueado")
+    ) || null;
+
+    // ==========================================
+    // 2. VERIFICAR SESIÓN
+    // ==========================================
+
+    if (!tokenSesionReal || !datosUsuario) {
+
+        listaPedidos.innerHTML = `
+            <p>🔒 Debes iniciar sesión para consultar tus pedidos.</p>
+        `;
+
+        return;
+    }
+
+    console.log(
+        "[PEDIDOS] Consultando pedidos mediante API..."
+    );
+
+    console.log(
+        "[PEDIDOS] Usuario:",
+        datosUsuario.correo
+    );
+
+    console.log(
+        "[PEDIDOS] Rol:",
+        datosUsuario.rol
+    );
+
+    listaPedidos.innerHTML = `
+        <p>⏳ Consultando pedidos...</p>
+    `;
+
+    // ==========================================
+    // 3. CONSULTAR FLASK / RENDER
+    // ==========================================
+
+    fetch(`${BASE_RENDER_URL}/api/pedidos`, {
+
+        method: "GET",
+
+        headers: {
+            "Authorization": `Bearer ${tokenSesionReal}`,
+            "Content-Type": "application/json"
+        }
+
+    })
+
+        // ==========================================
+        // 4. PROCESAR RESPUESTA
+        // ==========================================
+
         .then(function (response) {
-            if (!response.ok) throw new Error("Error en servidor base: " + response.status);
-            return response.json();
+
+            return response.json().then(function (data) {
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.error ||
+                        "No se pudieron obtener los pedidos"
+                    );
+                }
+
+                return data;
+            });
+
         })
+
         .then(function (datos) {
+
+            console.log(
+                "[PEDIDOS] Respuesta recibida:",
+                datos
+            );
+
             listaPedidos.innerHTML = "";
 
-            if (!datos || Object.keys(datos).length === 0) {
-                listaPedidos.innerHTML = "<p>No hay pedidos registrados en el sistema comercial.</p>";
+            const pedidos = datos.pedidos || {};
+
+            const idsPedidos = Object.keys(pedidos);
+
+            // ==========================================
+            // 5. NO HAY PEDIDOS
+            // ==========================================
+
+            if (idsPedidos.length === 0) {
+
+                listaPedidos.innerHTML = `
+                <div class="pedido">
+                    <p>📦 No tienes pedidos registrados.</p>
+                </div>
+            `;
+
                 return;
             }
 
-            Object.keys(datos).forEach(function (idPedido) {
-                let pedido = datos[idPedido];
+            // ==========================================
+            // 6. MOSTRAR TÍTULO SEGÚN EL ROL
+            // ==========================================
+
+            const tituloRol =
+                datos.rol === "master"
+                    ? "👑 Pedidos de todos los usuarios"
+                    : "📦 Mis pedidos";
+
+            listaPedidos.innerHTML += `
+            <div class="info-pedidos">
+
+                <h3>${tituloRol}</h3>
+
+                <p>
+                    Usuario:
+                    <strong>${datosUsuario.correo}</strong>
+                </p>
+
+            </div>
+        `;
+
+            // ==========================================
+            // 7. MOSTRAR CADA PEDIDO
+            // ==========================================
+
+            idsPedidos.forEach(function (idPedido) {
+
+                const pedido = pedidos[idPedido];
+
                 let productosHTML = "";
 
-                if (pedido.productos && Array.isArray(pedido.productos)) {
+                // ==========================================
+                // PRODUCTOS
+                // ==========================================
+
+                if (
+                    pedido.productos &&
+                    Array.isArray(pedido.productos)
+                ) {
+
                     pedido.productos.forEach(function (producto) {
-                        productosHTML += `<li>${producto.nombre} - S/ ${Number(producto.precio).toFixed(2)}</li>`;
+
+                        productosHTML += `
+                        <li>
+                            ${producto.nombre || "Producto"}
+                            -
+                            S/
+                            ${Number(
+                            producto.precio || 0
+                        ).toFixed(2)}
+                        </li>
+                    `;
+
                     });
+
                 } else {
-                    productosHTML = "<li>Sin productos registrados</li>";
+
+                    productosHTML = `
+                    <li>Sin productos registrados</li>
+                `;
+
                 }
 
-                let envio = pedido.costoEnvioExterno || 0;
-                let totalNeto = pedido.total || 0;
+                // ==========================================
+                // DATOS DEL PEDIDO
+                // ==========================================
+
+                const envio = Number(
+                    pedido.costoEnvioExterno || 0
+                );
+
+                const subtotal = Number(
+                    pedido.subtotal || 0
+                );
+
+                const total = Number(
+                    pedido.total || 0
+                );
+
+                const fecha = pedido.fecha
+                    ? new Date(
+                        pedido.fecha
+                    ).toLocaleString()
+                    : "No especificada";
+
+                // ==========================================
+                // MOSTRAR PEDIDO
+                // ==========================================
 
                 listaPedidos.innerHTML += `
-                    <div class="pedido">
-                        <h3>📦 Pedido: ${idPedido}</h3>
-                        <p><strong>Propietario:</strong> ${pedido.correoUsuario || "No asignado"}</p>
-                        <p><strong>Fecha:</strong> ${pedido.fecha ? new Date(pedido.fecha).toLocaleString() : "No especificada"}</p>
-                        <h4>Productos:</h4>
-                        <ul>${productosHTML}</ul>
-                        <p><strong>Costo de Envío:</strong> S/ ${Number(envio).toFixed(2)}</p>
-                        <p><strong>Total:</strong> S/ ${Number(totalNeto).toFixed(2)}</p>
-                    </div>
-                    <hr>
-                `;
+
+                <div class="pedido">
+
+                    <h3>
+                        📦 Pedido: ${idPedido}
+                    </h3>
+
+                    <p>
+                        <strong>Propietario:</strong>
+                        ${pedido.correoUsuario || "No asignado"}
+                    </p>
+
+                    <p>
+                        <strong>Fecha:</strong>
+                        ${fecha}
+                    </p>
+
+                    <p>
+                        <strong>Subtotal:</strong>
+                        S/ ${subtotal.toFixed(2)}
+                    </p>
+
+                    <h4>
+                        Productos:
+                    </h4>
+
+                    <ul>
+                        ${productosHTML}
+                    </ul>
+
+                    <p>
+                        <strong>Costo de envío:</strong>
+                        S/ ${envio.toFixed(2)}
+                    </p>
+
+                    <p>
+                        <strong>Total:</strong>
+                        S/ ${total.toFixed(2)}
+                    </p>
+
+                    <button
+                        onclick="eliminarPedido('${idPedido}')"
+                    >
+                        🗑️ Eliminar pedido
+                    </button>
+
+                </div>
+
+                <hr>
+
+            `;
+
             });
+
         })
+
+        // ==========================================
+        // 8. ERROR
+        // ==========================================
+
         .catch(function (error) {
-            console.error("Error directo:", error);
-            listaPedidos.innerHTML = `<p>❌ Error de conexión: ${error.message}</p>`;
+
+            console.error(
+                "[PEDIDOS ERROR]:",
+                error
+            );
+
+            listaPedidos.innerHTML = `
+
+            <div class="pedido">
+
+                <h3>
+                    ❌ Error de conexión
+                </h3>
+
+                <p>
+                    ${error.message}
+                </p>
+
+                <button
+                    onclick="mostrarPedidos()"
+                >
+                    🔄 Reintentar
+                </button>
+
+            </div>
+
+        `;
+
         });
 }
-
-
-// ==============================================================
-// ELIMINAR PEDIDO (RESTRICCIÓN PERIMETRAL EN BACKEND PYTHON CON JWT)
-// ==============================================================
-function eliminarPedido(idPedido) {
-    let confirmar = confirm("¿Seguro que deseas eliminar este pedido?");
-    if (!confirmar) return;
-
-    // Recuperamos el token de sesión emitido por tu login de Python y MongoDB
-    const tokenSesionReal = localStorage.getItem("authToken");
-
-    console.log(`[MULTICLOUD] Transmitiendo solicitud de eliminación para la orden ${idPedido} a Render...`);
-
-    // Redirección segura: Apuntamos al microservicio de Python en lugar de Firebase directo
-    fetch(`${BASE_RENDER_URL}/api/pedidos/${idPedido}`, {
-        method: "DELETE",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${tokenSesionReal}` // Firma criptográfica obligatoria para validación en Python
-        }
-    })
-        .then(function (response) {
-            return response.json().then(function (data) {
-                if (!response.ok) {
-                    // Captura el mensaje descriptivo exacto devuelto por app.py (ej: "No tienes permiso...")
-                    throw new Error(data.error || "Fallo en la operación de eliminación");
-                }
-                return data;
-            });
-        })
-        .then(function (data) {
-            alert("✅ " + (data.message || "Pedido eliminado correctamente"));
-            mostrarPedidos(); // Recarga dinámicamente la lista actualizada mediante el backend
-        })
-        .catch(function (error) {
-            console.error("[MULTICLOUD ERROR] Operación de borrado rechazada:", error.message);
-            alert("❌ Error: " + error.message);
-        });
-}
-
 // ==============================================================
 // 🔑 MICROSERVICIO DE AUTENTICACIÓN REAL (PYTHON + MONGODB ATLAS)
 // ==============================================================

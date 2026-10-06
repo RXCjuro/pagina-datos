@@ -9,8 +9,24 @@ import jwt
 app = Flask(__name__)
 
 # CORRECCIÓN REAL DE CORS: Habilita el soporte para recibir el token JWT en las cabeceras HTTP
-CORS(app, resources={"/api/*": {"origins": "*", "allow_headers": ["Authorization", "Content-Type"], "methods": ["GET", "POST", "OPTIONS"]}})
-
+CORS(
+    app,
+    resources={
+        r"/api/*": {
+            "origins": "*",
+            "allow_headers": [
+                "Authorization",
+                "Content-Type"
+            ],
+            "methods": [
+                "GET",
+                "POST",
+                "DELETE",
+                "OPTIONS"
+            ]
+        }
+    }
+)
 
 # RECONEXIÓN CON TUS CREDENCIALES ORIGINALES DE INICIO
 MONGO_URI = os.environ.get("MONGO_URI")
@@ -174,54 +190,135 @@ def login():
         return jsonify({"error": f"Error en el servidor: {str(e)}"}), 500
         
 # =========================================================
-# ENDPOINT 4: CONSULTAR PEDIDOS (CONEXIÓN SEGURA A MONGODB ATLAS)
+# ENDPOINT 4: CONSULTAR PEDIDOS
+# FIREBASE REALTIME DATABASE + CONTROL POR ROL
 # =========================================================
 @app.route("/api/pedidos", methods=["GET", "OPTIONS"])
 def obtener_pedidos():
+
+    # ==========================================
+    # 1. RESPUESTA PARA CORS
+    # ==========================================
+
     if request.method == "OPTIONS":
+
         respuesta_cors = jsonify({"status": "ok"})
-        respuesta_cors.headers.add("Access-Control-Allow-Origin", "*")
-        respuesta_cors.headers.add("Access-Control-Allow-Headers", "Authorization, Content-Type")
-        respuesta_cors.headers.add("Access-Control-Allow-Methods", "GET, OPTIONS")
+
+        respuesta_cors.headers.add(
+            "Access-Control-Allow-Origin",
+            "*"
+        )
+
+        respuesta_cors.headers.add(
+            "Access-Control-Allow-Headers",
+            "Authorization, Content-Type"
+        )
+
+        respuesta_cors.headers.add(
+            "Access-Control-Allow-Methods",
+            "GET, OPTIONS"
+        )
+
         return respuesta_cors, 200
 
     try:
-        usuario, error = obtener_usuario_desde_token()
-        if error:
-            return jsonify({"error": error}), 401
 
-        # Mapeamos la colección 'pedidos' directamente en tu base de datos NoSQL activa
-        pedidos_col = db['pedidos']
-        
-        # =================================================
-        # CONFIGURACIÓN ROL: MASTER
-        # =================================================
+        # ==========================================
+        # 2. VALIDAR JWT
+        # ==========================================
+
+        usuario, error = obtener_usuario_desde_token()
+
+        if error:
+            return jsonify({
+                "error": error
+            }), 401
+
+        print(
+            f"[PEDIDOS] Usuario: {usuario['correo']} | "
+            f"Rol: {usuario['rol']}"
+        )
+
+        # ==========================================
+        # 3. CONSULTAR FIREBASE
+        # ==========================================
+
+        respuesta = requests.get(
+            f"{FIREBASE_DB_URL}/pedidos.json",
+            timeout=15
+        )
+
+        if not respuesta.ok:
+
+            print(
+                "[FIREBASE ERROR]",
+                respuesta.status_code,
+                respuesta.text
+            )
+
+            return jsonify({
+                "error": "No se pudo consultar Firebase"
+            }), 500
+
+        datos = respuesta.json() or {}
+
+        # ==========================================
+        # 4. MASTER → PUEDE VER TODOS LOS PEDIDOS
+        # ==========================================
+
         if usuario["rol"] == "master":
-            # Extraemos todos los registros guardados del sistema
-            todos_pedidos = list(pedidos_col.find({}, {"_id": 0}))
-            pedidos_dict = {f"PEDIDO_{i}": p for i, p in enumerate(todos_pedidos)}
+
             return jsonify({
                 "rol": "master",
-                "pedidos": pedidos_dict
+                "pedidos": datos
             }), 200
 
-        # =================================================
-        # CONFIGURACIÓN ROL: USUARIO NORMAL
-        # =================================================
-        # Filtramos de forma matemática estricta por el correo del usuario en sesión
-        pedidos_db = list(pedidos_col.find({"correoUsuario": usuario["correo"]}, {"_id": 0}))
-        pedidos_usuario = {f"PEDIDO_{i}": p for i, p in enumerate(pedidos_db)}
+        # ==========================================
+        # 5. USUARIO NORMAL → SOLO SUS PEDIDOS
+        # ==========================================
+
+        pedidos_usuario = {}
+
+        for id_pedido, pedido in datos.items():
+
+            if pedido.get("correoUsuario") == usuario["correo"]:
+
+                pedidos_usuario[id_pedido] = pedido
 
         return jsonify({
             "rol": "usuario",
             "pedidos": pedidos_usuario
         }), 200
 
+    # ==========================================
+    # 6. ERROR DE CONEXIÓN CON FIREBASE
+    # ==========================================
+
+    except requests.RequestException as e:
+
+        print(
+            "[FIREBASE ERROR]",
+            str(e)
+        )
+
+        return jsonify({
+            "error": "Error de comunicación con Firebase"
+        }), 500
+
+    # ==========================================
+    # 7. OTROS ERRORES
+    # ==========================================
+
     except Exception as e:
-        return jsonify({"error": f"Error de comunicación en Atlas: {str(e)}"}), 500
 
+        print(
+            "[PEDIDOS ERROR]",
+            str(e)
+        )
 
-
+        return jsonify({
+            "error": f"Error interno: {str(e)}"
+        }), 500
 # =========================================================
 # ENDPOINT 5: ELIMINAR PEDIDO (RESTRICCIÓN PERIMETRAL)
 # =========================================================
