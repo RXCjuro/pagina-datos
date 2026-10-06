@@ -196,30 +196,8 @@ def login():
 @app.route("/api/pedidos", methods=["GET", "OPTIONS"])
 def obtener_pedidos():
 
-    # ==========================================
-    # 1. RESPUESTA PARA CORS
-    # ==========================================
-
     if request.method == "OPTIONS":
-
-        respuesta_cors = jsonify({"status": "ok"})
-
-        respuesta_cors.headers.add(
-            "Access-Control-Allow-Origin",
-            "*"
-        )
-
-        respuesta_cors.headers.add(
-            "Access-Control-Allow-Headers",
-            "Authorization, Content-Type"
-        )
-
-        respuesta_cors.headers.add(
-            "Access-Control-Allow-Methods",
-            "GET, OPTIONS"
-        )
-
-        return respuesta_cors, 200
+        return "", 204
 
     try:
 
