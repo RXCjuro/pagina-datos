@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECO VIDA - Suscríbete</title>
+
+    <link rel="stylesheet" href="CSS/estilos.css">
+
+        <style>
+        #suscripcion label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        #suscripcion label input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+
+        #suscripcion button {
+            display: block;
+            margin: 12px auto 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!--Encabezado -->
+    <header>
+        <h1>🌱 EcoVida</h1>
+        <p>Productos ecológicos y reutilizables</p>
+    </header>
+
+    <!-- Menú -->
+    <nav>
+        <a href="index.html">Inicio</a>
+        <a href="productos.html">Productos</a>
+        <a href="nosotros.html">Nosotros</a>
+        <a href="contacto.html">Contacto</a>
+        <a href="pedidos.html">📦 Pedidos</a>
+        <a href="carrito.html">🛒 Carrito</a>
+        <a href="quiz.html">✨ Quiz</a>
+        <a href="#">📩 Suscríbete</a>
+    </nav>
+
+    <!-- Suscripción -->
+    <section id="suscripcion">
+        <h2>Suscríbete a EcoVida</h2>
+        <p>Recibe novedades y ofertas de productos ecológicos.</p>
+
+        <input type="email" id="correoSuscripcion" placeholder="Correo">
+
+        <label>
+            <input type="checkbox" id="aceptoTerminos">
+            Acepto que EcoVida use mi correo para enviarme novedades.
+        </label>
+
+        <button type="button" id="btnSuscribirse">Suscribirme</button>
+        <p id="mensajeSuscripcion"></p>
+    </section>
+
+    <!-- Pie de página -->
+    <footer>
+        <p>© 2026 EcoVida - Productos sostenibles</p>
+    </footer>
+
+    <!-- JavaScript-->
+    <script src="JS/ecovida.js"></script>
+    <script src="JS/suscripcion.js"></script>
+
+</body>
+
+</html>
