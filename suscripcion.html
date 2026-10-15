@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoVida - Suscríbete</title>
+
+    <link rel="stylesheet" href="CSS/estilos.css">
+    <link rel="stylesheet" href="CSS/suscripcion.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>🌱 EcoVida</h1>
+        <p>Productos ecológicos y reutilizables</p>
+    </header>
+
+    <nav>
+        <a href="index.html">Inicio</a>
+        <a href="productos.html">Productos</a>
+        <a href="nosotros.html">Nosotros</a>
+        <a href="contacto.html">Contacto</a>
+        <a href="pedidos.html">📦 Pedidos</a>
+        <a href="carrito.html">🛒 Carrito</a>
+        <a href="quiz.html">✨ Quiz</a>
+        <a href="suscripcion.html" class="activo">📩 Suscríbete</a>
+    </nav>
+
+    <main class="pagina-suscripcion">
+        <section id="suscripcion" class="suscripcion-tarjeta">
+
+            <div class="suscripcion-icono" aria-hidden="true">
+                🌿
+            </div>
+
+            <span class="suscripcion-etiqueta">
+                SÉ PARTE DEL CAMBIO
+            </span>
+
+            <h2>¡Suscríbete a EcoVida!</h2>
+
+            <p class="suscripcion-descripcion">
+                Recibe novedades, consejos ecológicos y ofertas
+                especiales para cuidar el planeta con nosotros.
+            </p>
+
+            <form id="formularioSuscripcion">
+                <label for="correoSuscripcion">
+                    Correo electrónico
+                </label>
+
+                <input type="email" id="correoSuscripcion" placeholder="tucorreo@ejemplo.com" autocomplete="email"
+                    required>
+
+                <label class="terminos-suscripcion" for="aceptoTerminos">
+                    <input type="checkbox" id="aceptoTerminos" required>
+                    <span>
+                        Acepto que EcoVida utilice mi correo
+                        para enviarme novedades y ofertas.
+                    </span>
+                </label>
+
+                <button type="submit" id="btnSuscribirse">
+                    Suscribirme
+                </button>
+
+                <p id="mensajeSuscripcion" class="mensaje-suscripcion" role="status" aria-live="polite"></p>
+            </form>
+
+            <p class="suscripcion-privacidad">
+                Queremos mantenerte informado sobre un consumo
+                más responsable.
+            </p>
+
+        </section>
+    </main>
+
+    <footer>
+        <p>© 2026 EcoVida - Productos sostenibles</p>
+    </footer>
+
+    <script src="JS/ecovida.js"></script>
+    <script src="JS/suscripcion.js"></script>
+
+</body>
+
+</html>
