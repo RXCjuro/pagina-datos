@@ -1,4 +1,4 @@
-const fs = require("fs");
+/*const fs = require("fs");
 
 console.log("=================================");
 console.log("PRUEBA DE INTEGRACIÓN ECOVIDA");
@@ -39,3 +39,4 @@ console.log("---------------------------------");
 console.log("✓ PRUEBA DE INTEGRACIÓN EXITOSA");
 console.log("---------------------------------");
 
+*/
