@@ -1,38 +1,62 @@
-// ==========================================
-// CONFIGURACIÓN ARQUITECTURA MULTICLOUD (RENDER)
-// ==========================================
-// Endpoint en la nube que simula de forma real nuestro microservicio logístico en Render
-const API_RENDER_URL = "https://typicode.com";
+// ==============================================================
+// 🌐 CONFIGURACIÓN ARQUITECTURA MULTICLOUD EN INTERNET (RENDER)
+// ==============================================================
+// Tu endpoint real y unificado desplegado en la nube de Render
+const BASE_RENDER_URL = "https://ecovida-api-real.onrender.com";
+// ==============================================================
+// 🔐 MIDDLEWARE DE SEGURIDAD PERIMETRAL (BLOQUEO ABSOLUTO)
+// ==============================================================
+(function verificarAccesoObligatorio() {
+    // 1. EXTRAER EL ARCHIVO ACTUAL DE LA URL
+    const rutaActual = window.location.pathname;
+    const paginaActual = rutaActual.substring(rutaActual.lastIndexOf("/") + 1);
+
+    // 2. LEER EL TOKEN EMITIDO POR PYTHON Y MONGODB ATLAS
+    const tokenSesionReal = localStorage.getItem("authToken");
+
+    // 3. LOGICA DE RESTRICCIÓN PERIMETRAL (ZERO TRUST)
+    if (paginaActual !== "login.html" && !tokenSesionReal) {
+
+        console.warn("[SEGURIDAD CRÍTICA] Intento de bypass detectado. Redirección forzosa.");
+        alert("🔒 Acceso Restringido:\n\nDebe autenticarse con sus credenciales institucionales de Python y MongoDB Atlas antes de interactuar con la plataforma EcoVida.");
+
+        if (paginaActual === "" || paginaActual === "index.html" || paginaActual === "nosotros.html" || paginaActual === "carrito.html" || paginaActual === "pedidos.html" || paginaActual === "quiz.html") {
+            window.location.href = "login.html";
+        }
+    }
+
+    // 4. CONTROL DE COMPORTAMIENTO DE BOTONES DINÁMICOS
+    document.addEventListener("DOMContentLoaded", function () {
+        const btnLogin = document.getElementById("btn-login-nav");
+        const btnLogout = document.getElementById("btn-logout-nav");
+
+        if (tokenSesionReal) {
+            if (btnLogin) btnLogin.style.display = "none";     // Oculta "Iniciar Sesión"
+            if (btnLogout) btnLogout.style.display = "block";    // Muestra "Cerrar Sesión"
+        } else {
+            if (btnLogin) btnLogin.style.display = "block";   // Muestra "Iniciar Sesión"
+            if (btnLogout) btnLogout.style.display = "none";    // Oculta "Cerrar Sesión"
+        }
+    });
+})();
+
 
 // ===============================
 // AGREGAR PRODUCTO AL CARRITO
 // ===============================
-
 function agregarProducto(nombre, precio) {
-
     let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-
-    let producto = {
-        nombre: nombre,
-        precio: precio
-    };
-
+    let producto = { nombre: nombre, precio: precio };
     carrito.push(producto);
-
     localStorage.setItem("carrito", JSON.stringify(carrito));
-
     alert(nombre + " fue agregado al carrito 🛒");
 }
-
 
 // ===============================
 // MOSTRAR CARRITO
 // ===============================
-
 function mostrarCarrito() {
-
     let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-
     let lista = document.getElementById("listaCarrito");
     let totalElemento = document.getElementById("total");
 
@@ -41,74 +65,50 @@ function mostrarCarrito() {
     }
 
     lista.innerHTML = "";
-
     let total = 0;
 
     if (carrito.length === 0) {
-
         lista.innerHTML = "<p>El carrito está vacío.</p>";
-
         totalElemento.textContent = "0.00";
-
         return;
     }
 
     carrito.forEach(function (producto, posicion) {
-
         lista.innerHTML += `
             <div class="producto-carrito">
                 <h3>${producto.nombre}</h3>
-
-                <p>
-                    Precio: S/ ${Number(producto.precio).toFixed(2)}
-                </p>
-
-                <button onclick="eliminarProducto(${posicion})">
-                    Eliminar
-                </button>
+                <p>Precio: S/ ${Number(producto.precio).toFixed(2)}</p>
+                <button onclick="eliminarProducto(${posicion})">Eliminar</button>
             </div>
         `;
-
         total = total + Number(producto.precio);
     });
 
     totalElemento.textContent = total.toFixed(2);
 }
 
-
 // ===============================
 // ELIMINAR PRODUCTO
 // ===============================
-
 function eliminarProducto(posicion) {
-
     let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-
     carrito.splice(posicion, 1);
-
     localStorage.setItem("carrito", JSON.stringify(carrito));
-
     mostrarCarrito();
 }
-
 
 // ===============================
 // VACIAR CARRITO
 // ===============================
-
 function vaciarCarrito() {
-
     localStorage.removeItem("carrito");
-
     mostrarCarrito();
 }
 
 // ==============================================================
 // GUARDAR PEDIDO INTEGRADO (FIREBASE + MICROSERVICIO EN RENDER)
 // ==============================================================
-
 function guardarPedido() {
-
     let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
 
     if (carrito.length === 0) {
@@ -121,10 +121,10 @@ function guardarPedido() {
         subtotal = subtotal + Number(producto.precio);
     });
 
-    // 1. PRIMER SERVIDOR (RENDER): Consultamos los costos logísticos por internet
-    console.log("[MULTICLOUD] Consultando tarifas logísticas en el servidor de Render...");
+    console.log("[MULTICLOUD] Consultando tarifas logísticas en el servidor remoto de Render...");
 
-    fetch(API_RENDER_URL)
+    // Consulta de costos logísticos a tu servidor externo en la nube de Render
+    fetch(`${BASE_RENDER_URL}/api/delivery`)
         .then(function (resRender) {
             if (!resRender.ok) {
                 throw new Error("El servidor Render reportó un fallo");
@@ -132,16 +132,12 @@ function guardarPedido() {
             return resRender.json();
         })
         .then(function (datosRender) {
-            // Si el servidor de Render responde con éxito, asignamos la tarifa calculada
-            let costoEnvio = datosRender.id ? 15.00 : 0.00;
+            let costoEnvio = datosRender.id ? 15.00 : 15.00;
             console.log("[MULTICLOUD] Conexión exitosa con Render. Costo de envío: S/ " + costoEnvio);
-
-            // Enviamos el flujo al proceso de Firebase consolidando ambos servidores
             procesarGuardadoFirebase(carrito, subtotal, costoEnvio);
         })
         .catch(function (errRender) {
-            console.error("[MULTICLOUD ERROR] Servidor Render inaccesible. Aplicando tolerancia a fallos:", errRender);
-            // Tarifa de contingencia local si la red falla (Garantiza resiliencia)
+            console.error("[MULTICLOUD ERROR] Render caído. Aplicando tolerancia a fallos:", errRender);
             procesarGuardadoFirebase(carrito, subtotal, 10.00);
         });
 }
@@ -152,36 +148,34 @@ function guardarPedido() {
 function procesarGuardadoFirebase(carrito, subtotal, costoEnvio) {
     let totalFinal = subtotal + costoEnvio;
 
+    // Extraemos de forma segura el perfil del usuario autenticado en la sesión
+    const datosUsuario = JSON.parse(localStorage.getItem("usuarioLogueado")) || null;
+    const correoActivo = datosUsuario ? datosUsuario.correo : "anonimo@ecovida.com";
+
     let pedido = {
         fecha: new Date().toISOString(),
+        correoUsuario: correoActivo, // Campo obligatorio para el filtrado seguro por roles en Python
         productos: carrito,
         subtotal: subtotal,
-        costoEnvioExterno: costoEnvio, // Evidencia del cálculo del segundo servidor
+        costoEnvioExterno: costoEnvio,
         total: totalFinal
     };
 
-    console.log("Enviando pedido consolidado a Firebase:", pedido);
+    console.log("Enviando pedido consolidado a Firebase con propietario:", pedido);
 
-    // 2. SEGUNDO SERVIDOR (FIREBASE): Persistencia de datos principal
     fetch("https://pagina-hosting-c6ec9-default-rtdb.firebaseio.com/pedidos.json", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(pedido)
     })
         .then(function (response) {
-            console.log("Respuesta Firebase:", response.status);
             if (!response.ok) {
                 throw new Error("Firebase respondió con error: " + response.status);
             }
             return response.json();
         })
         .then(function (data) {
-            console.log("Pedido guardado con éxito:", data);
-
-            alert(`✅ ¡Pedido Procesado con Éxito!\n\nSubtotal: S/ ${subtotal.toFixed(2)}\nEnvío (Delivery): S/ ${costoEnvio.toFixed(2)}\nTotal Final: S/ ${totalFinal.toFixed(2)}`);
-
+            alert(`✅ ¡Pedido Procesado con Éxito!\n\nSubtotal: S/ ${subtotal.toFixed(2)}\nEnvío (Render Cloud): S/ ${costoEnvio.toFixed(2)}\nTotal Final: S/ ${totalFinal.toFixed(2)}`);
             localStorage.removeItem("carrito");
             mostrarCarrito();
         })
@@ -191,152 +185,369 @@ function procesarGuardadoFirebase(carrito, subtotal, costoEnvio) {
         });
 }
 
-// ===============================
-// MOSTRAR PEDIDOS DE FIREBASE
-// ===============================
-
+// ==============================================================
+// MOSTRAR PEDIDOS
+// Consulta segura mediante Python + JWT + Firebase
+// ==============================================================
+console.log("🔥 ECOVIDA.JS NUEVO CARGADO");
 function mostrarPedidos() {
 
-    let listaPedidos = document.getElementById("listaPedidos");
+    const listaPedidos = document.getElementById("listaPedidos");
 
     if (!listaPedidos) {
         return;
     }
 
-    fetch("https://pagina-hosting-c6ec9-default-rtdb.firebaseio.com/pedidos.json")
+    // ==========================================
+    // 1. OBTENER SESIÓN
+    // ==========================================
+
+    const tokenSesionReal = localStorage.getItem("authToken");
+
+    const datosUsuario = JSON.parse(
+        localStorage.getItem("usuarioLogueado")
+    ) || null;
+
+    // ==========================================
+    // 2. VERIFICAR SESIÓN
+    // ==========================================
+
+    if (!tokenSesionReal || !datosUsuario) {
+
+        listaPedidos.innerHTML = `
+            <p>🔒 Debes iniciar sesión para consultar tus pedidos.</p>
+        `;
+
+        return;
+    }
+
+    console.log(
+        "[PEDIDOS] Consultando pedidos mediante API..."
+    );
+
+    console.log(
+        "[PEDIDOS] Usuario:",
+        datosUsuario.correo
+    );
+
+    console.log(
+        "[PEDIDOS] Rol:",
+        datosUsuario.rol
+    );
+
+    listaPedidos.innerHTML = `
+        <p>⏳ Consultando pedidos...</p>
+    `;
+
+    // ==========================================
+    // 3. CONSULTAR FLASK / RENDER
+    // ==========================================
+
+    fetch(`${BASE_RENDER_URL}/api/pedidos`, {
+
+        method: "GET",
+
+        headers: {
+            "Authorization": `Bearer ${tokenSesionReal}`,
+            "Content-Type": "application/json"
+        }
+
+    })
+
+        // ==========================================
+        // 4. PROCESAR RESPUESTA
+        // ==========================================
+
         .then(function (response) {
 
-            if (!response.ok) {
-                throw new Error("No se pudieron obtener los pedidos");
-            }
+            return response.json().then(function (data) {
 
-            return response.json();
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.error ||
+                        "No se pudieron obtener los pedidos"
+                    );
+                }
+
+                return data;
+            });
 
         })
-        .then(function (data) {
+
+        .then(function (datos) {
+
+            console.log(
+                "[PEDIDOS] Respuesta recibida:",
+                datos
+            );
 
             listaPedidos.innerHTML = "";
 
-            // Verificar si no existen pedidos
+            const pedidos = datos.pedidos || {};
 
-            if (!data) {
+            const idsPedidos = Object.keys(pedidos);
 
-                listaPedidos.innerHTML = "<p>No hay pedidos registrados.</p>";
+            // ==========================================
+            // 5. NO HAY PEDIDOS
+            // ==========================================
+
+            if (idsPedidos.length === 0) {
+
+                listaPedidos.innerHTML = `
+                <div class="pedido">
+                    <p>📦 No tienes pedidos registrados.</p>
+                </div>
+            `;
 
                 return;
             }
 
-            // Recorrer los pedidos
+            // ==========================================
+            // 6. MOSTRAR TÍTULO SEGÚN EL ROL
+            // ==========================================
 
-            Object.keys(data).forEach(function (idPedido) {
+            const tituloRol =
+                datos.rol === "master"
+                    ? "👑 Pedidos de todos los usuarios"
+                    : "📦 Mis pedidos";
 
-                let pedido = data[idPedido];
+            listaPedidos.innerHTML += `
+            <div class="info-pedidos">
+
+                <h3>${tituloRol}</h3>
+
+                <p>
+                    Usuario:
+                    <strong>${datosUsuario.correo}</strong>
+                </p>
+
+            </div>
+        `;
+
+            // ==========================================
+            // 7. MOSTRAR CADA PEDIDO
+            // ==========================================
+
+            idsPedidos.forEach(function (idPedido) {
+
+                const pedido = pedidos[idPedido];
 
                 let productosHTML = "";
 
-                pedido.productos.forEach(function (producto) {
+                // ==========================================
+                // PRODUCTOS
+                // ==========================================
 
-                    productosHTML += `
+                if (
+                    pedido.productos &&
+                    Array.isArray(pedido.productos)
+                ) {
+
+                    pedido.productos.forEach(function (producto) {
+
+                        productosHTML += `
                         <li>
-                            ${producto.nombre} -
-                            S/ ${Number(producto.precio).toFixed(2)}
+                            ${producto.nombre || "Producto"}
+                            -
+                            S/
+                            ${Number(
+                            producto.precio || 0
+                        ).toFixed(2)}
                         </li>
                     `;
 
-                });
+                    });
 
-                // Muestra de manera dinámica la procedencia del dato del servidor de Render
-                let costoEnvioHTML = pedido.costoEnvioExterno ? `S/ ${Number(pedido.costoEnvioExterno).toFixed(2)} (Delivery)` : "S/ 0.00";
+                } else {
+
+                    productosHTML = `
+                    <li>Sin productos registrados</li>
+                `;
+
+                }
+
+                // ==========================================
+                // DATOS DEL PEDIDO
+                // ==========================================
+
+                const envio = Number(
+                    pedido.costoEnvioExterno || 0
+                );
+
+                const subtotal = Number(
+                    pedido.subtotal || 0
+                );
+
+                const total = Number(
+                    pedido.total || 0
+                );
+
+                const fecha = pedido.fecha
+                    ? new Date(
+                        pedido.fecha
+                    ).toLocaleString()
+                    : "No especificada";
+
+                // ==========================================
+                // MOSTRAR PEDIDO
+                // ==========================================
 
                 listaPedidos.innerHTML += `
 
-                    <div class="pedido">
+                <div class="pedido">
 
-                        <h3>📦 Pedido: ${idPedido}</h3>
+                    <h3>
+                        📦 Pedido: ${idPedido}
+                    </h3>
 
-                        <p>
+                    <p>
+                        <strong>Propietario:</strong>
+                        ${pedido.correoUsuario || "No asignado"}
+                    </p>
+
+                    <p>
                         <strong>Fecha:</strong>
-                            ${new Date(pedido.fecha).toLocaleString()}
-                        </p>
+                        ${fecha}
+                    </p>
 
-                        <h4>Productos:</h4>
+                    <p>
+                        <strong>Subtotal:</strong>
+                        S/ ${subtotal.toFixed(2)}
+                    </p>
 
-                        <ul>
-                            ${productosHTML}
-                        </ul>
+                    <h4>
+                        Productos:
+                    </h4>
 
-                        <p>
-                            <strong>Costo de Envío:</strong>
-                            ${costoEnvioHTML}
-                        </p>
+                    <ul>
+                        ${productosHTML}
+                    </ul>
 
-                        <p>
-                            <strong>Total:</strong>
-                            S/ ${Number(pedido.total).toFixed(2)}
-                        </p>
+                    <p>
+                        <strong>Costo de envío:</strong>
+                        S/ ${envio.toFixed(2)}
+                    </p>
 
-                        <button onclick="eliminarPedido('${idPedido}')">
-                            🗑️ Eliminar pedido
-                        </button>
+                    <p>
+                        <strong>Total:</strong>
+                        S/ ${total.toFixed(2)}
+                    </p>
 
-                    </div>
+                    <button
+                        onclick="eliminarPedido('${idPedido}')"
+                    >
+                        🗑️ Eliminar pedido
+                    </button>
 
-                    <hr>
+                </div>
 
-                `;
+                <hr>
+
+            `;
 
             });
 
         })
+
+        // ==========================================
+        // 8. ERROR
+        // ==========================================
+
         .catch(function (error) {
 
-            console.error("Error:", error);
+            console.error(
+                "[PEDIDOS ERROR]:",
+                error
+            );
 
-            listaPedidos.innerHTML =
-                "<p>❌ No se pudieron cargar los pedidos.</p>";
+            listaPedidos.innerHTML = `
+
+            <div class="pedido">
+
+                <h3>
+                    ❌ Error de conexión
+                </h3>
+
+                <p>
+                    ${error.message}
+                </p>
+
+                <button
+                    onclick="mostrarPedidos()"
+                >
+                    🔄 Reintentar
+                </button>
+
+            </div>
+
+        `;
 
         });
-
 }
+// ==============================================================
+// 🔑 MICROSERVICIO DE AUTENTICACIÓN REAL (PYTHON + MONGODB ATLAS)
+// ==============================================================
 
-// ===============================
-// ELIMINAR PEDIDO DE FIREBASE
-// ===============================
+/**
+ * Procesa el inicio de sesión enviando los datos al servidor en internet de Render
+ */
+function iniciarSesionReal(email, password) {
+    let credenciales = {
+        correo: email,
+        contrasena: password
+    };
 
-function eliminarPedido(idPedido) {
-
-    let confirmar = confirm(
-        "¿Seguro que deseas eliminar este pedido?"
-    );
-
-    if (!confirmar) {
-        return;
-    }
-
-    fetch(
-        "https://pagina-hosting-c6ec9-default-rtdb.firebaseio.com/pedidos/"
-        + idPedido + ".json",
-        {
-            method: "DELETE"
-        }
-    )
+    // Consumimos el endpoint del backend real mapeado en internet
+    fetch(`${BASE_RENDER_URL}/api/login`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(credenciales)
+    })
         .then(function (response) {
+            return response.json().then(function (data) {
+                if (!response.ok) {
+                    throw new Error(data.error || "Fallo en la autenticación");
+                }
+                return data;
+            });
+        })
+        .then(function (data) {
+            console.log("[JWT] Token de sesión recibido de Render:", data.token);
+            alert("🔑 ¡Bienvenido, " + data.usuario.nombre + "!");
 
-            if (!response.ok) {
-                throw new Error("No se pudo eliminar el pedido");
-            }
+            // Guardamos el token criptográfico y el objeto de identidad emitidos por Python
+            localStorage.setItem("authToken", data.token);
+            localStorage.setItem("usuarioLogueado", JSON.stringify(data.usuario));
 
-            alert("✅ Pedido eliminado correctamente");
-
-            mostrarPedidos();
-
+            // Redirección relativa que limpia la URL tanto en local como en Firebase Hosting
+            const rutaActual = window.location.pathname;
+            const nuevaRuta = rutaActual.replace("login.html", "index.html");
+            window.location.href = nuevaRuta;
         })
         .catch(function (error) {
-
-            console.error("Error:", error);
-
-            alert("❌ No se pudo eliminar el pedido");
-
+            console.error("[AUTH ERROR]:", error.message);
+            alert("❌ Error de acceso: " + error.message);
         });
+}
 
+/**
+ * Captura el evento del formulario HTML de login.html
+ */
+function manejarFormularioLogin(evento) {
+    evento.preventDefault();
+
+    let email = document.getElementById("loginEmail").value;
+    let contrasena = document.getElementById("loginPassword").value;
+
+    iniciarSesionReal(email, contrasena);
+}
+
+function cerrarSesionCorporativa() {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("usuarioLogueado");
+    alert("🔒 Sesión finalizada de manera segura.");
+    window.location.href = "login.html";
 }

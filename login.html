@@ -97,13 +97,12 @@
             const correo = document.getElementById("regEmail").value;
             const contrasena = document.getElementById("regPassword").value;
 
-            console.log("[MULTICLOUD] Transmitiendo paquete de registro hacia backend Python...");
+            console.log("[MULTICLOUD] Transmitiendo paquete de registro hacia producción en Render...");
 
-            fetch("http://localhost:5000/api/register", {
+            // Consumimos el endpoint correspondiente concatenando la URL global
+            fetch(`${BASE_RENDER_URL}/api/register`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ nombre: nombre, correo: correo, contrasena: contrasena })
             })
                 .then(function (response) {
@@ -113,13 +112,15 @@
                     });
                 })
                 .then(function (data) {
-                    alert("✅ Registro exitoso en MongoDB Atlas. Módulo de identidad actualizado.");
+                    alert("✅ ¡Registro exitoso en MongoDB Atlas! Su módulo de identidad ha sido inicializado.");
                     cambiarPestaña('login');
                 })
                 .catch(function (error) {
                     alert("❌ Fallo en la operación: " + error.message);
                 });
         }
+
+
     </script>
     <!-- Inyección de la lógica operacional y controladores visuales de diseño -->
     <script src="JS/ecovida.js"></script>

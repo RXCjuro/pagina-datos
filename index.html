@@ -19,15 +19,31 @@
 
     <!-- Menú -->
     <nav>
+        <!-- Botón Profesional de Acceso al Sistema -->
+        <a href="login.html" id="btn-login-nav" class="btn-login-nav" style="
+        background-color: #10b981; 
+        color: white; 
+        padding: 8px 16px; 
+        text-decoration: none; 
+        border-radius: 6px; 
+        font-weight: 600; 
+        font-family: sans-serif;
+        transition: background 0.2s;
+        display: block;
+    " onmouseover="this.style.backgroundColor='#059669'" onmouseout="this.style.backgroundColor='#10b981'">
+            👤 Iniciar Sesión
+        </a>
+
         <a href="#">Inicio</a>
         <a href="productos.html">Productos</a>
         <a href="nosotros.html">Nosotros</a>
         <a href="contacto.html">Contacto</a>
-        <a href="pedidos.html">📦 Pedidos</a>
         <a href="carrito.html">🛒 Carrito</a>
+        <a href="pedidos.html">📦 Pedidos</a>
         <a href="quiz.html">✨ Quiz</a>
         <a href="suscripcion.html">📩 Suscríbete</a>
     </nav>
+
 
     <!-- Presentación -->
     <section>
@@ -40,16 +56,6 @@
 
     </section>
 
-    <!-- Contacto -->
-    <section id="contacto">
-        <h2>Contacto</h2>
-        <p>¿Tienes alguna consulta? Escríbenos.</p>
-        <input type="text" placeholder="Nombre">
-        <input type="email" placeholder="Correo">
-        <textarea placeholder="Mensaje"></textarea>
-        <button>Enviar mensaje</button>
-    </section>
-
     <!-- Pie de página -->
     <footer>
         <p>© 2026 EcoVida - Productos sostenibles</p>
@@ -57,7 +63,6 @@
 
     <!-- JavaScript-->
     <script src="JS/ecovida.js"></script>
-
 </body>
 
 </html>
